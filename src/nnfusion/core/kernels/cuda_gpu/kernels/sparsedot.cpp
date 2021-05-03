@@ -52,10 +52,22 @@ LanguageUnit_p cuda::SparseDot::emit_function_body()
             // calculate in col-major
             int m, k, n;
 
-            std::cout<<"Dense Shape"<< dense_shape[0] << "  "<<dense_shape[1]<<std::endl;
-            m = dense_shape[0];
-            k = dense_shape[1];
+            std::cout<<"Dense Shape";
+            for (size_t i = 0; i < dense_shape.size(); i++)
+            {
+                /* code */
+                std::cout<< dense_shape[i]<<" ";
+
+            }
+            std::cout<<std::endl;
+            m = 1;
+            for(int i=0;i<dense_shape.size()-1;i++)
+                m = m* dense_shape[i];
+            // m = dense_shape[0];
+            k = dense_shape[dense_shape.size()-1];
             n = trans_B? sparse_shape[0]: sparse_shape[1];
+            std::cout<< "Cusparse "<<" M:"<<m<<"  K:"<<k<< " N:"<<n<<std::endl;
+            std::cout<< "Trans_B: "<< trans_B<<std::endl;
             if(trans_B){
                 std::cout<<k<<" "<<sparse_shape[0]<<" "<<sparse_shape[1]<<std::endl;
                 assert(k == sparse_shape[1]);

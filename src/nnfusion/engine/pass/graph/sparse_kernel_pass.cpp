@@ -196,6 +196,55 @@ private:
                 insert_sparse_dot(m_graph, in_edge, row_idx, col_idx, values);
                 has_constant = true;
                 break;
+            } else if(src_node->get_op_type()=="Reshape"){
+                auto weight_node = src_node->get_in_edge(0)->get_src();
+                auto ori_weight_shape = weight_node->get_output_shape(0);
+                std::cout<<" Ori weight outshape ";
+                for(int i=0;i<ori_weight_shape.size();i++){
+                    std::cout<<ori_weight_shape[i]<<" ";
+                }       
+                std::cout<<std::endl;
+                if(!weight_node->is_constant())
+                    continue;
+                auto outputs = src_node->get_outputs();
+                auto out_shape = src_node->get_output_shape(0);
+                std::cout<<" Reshape outshape ";
+                for(int i=0;i<out_shape.size();i++){
+                    std::cout<<out_shape[i]<<" ";
+                }
+                std::cout<<std::endl;
+                for(int i=0; i<outputs.size();i++)
+                    weight_node->set_output(i, outputs[i]);
+                auto new_weight_shape=weight_node->get_output_shape(0);
+                std::cout<<" New weight outshape ";
+                for(int i=0;i<new_weight_shape.size();i++){
+                    std::cout<<new_weight_shape[i]<<" ";
+                }     
+                std::cout<<std::endl;
+                int dst_input = in_edge->get_dst_input();
+                m_graph->remove_node(src_node);
+                m_graph->add_edge(weight_node, 0, cur_node, dst_input);
+                auto weight_constant =
+                    std::dynamic_pointer_cast<nnfusion::op::Constant>(weight_node->get_op_ptr());
+                
+                auto data_ptr = weight_constant->get_data_ptr();
+                assert(data_ptr != nullptr);
+                // auto m_shape = weight_constant->get_shape();
+                float sparsity_ratio =
+                    get_sparsity_ratio<float>(static_cast<const float*>(data_ptr),
+                                              nnfusion::shape_size(out_shape),
+                                              sparse_threshold);
+                // if sparsity ratio is too low then it's not worth
+                std::cout<<" Sparsity Ratio: "<<sparsity_ratio<<std::endl;
+                if (sparsity_ratio < 0.9)
+                    continue;
+                std::shared_ptr<vector<int32_t>> row_idx, col_idx;
+                std::shared_ptr<vector<float>> values;
+                std::tie(row_idx, col_idx, values) = convert_to_csr<float>(
+                    static_cast<const float*>(data_ptr), ori_weight_shape, sparse_threshold);
+                insert_sparse_dot(m_graph, cur_node->get_in_edge(dst_input), row_idx, col_idx, values);
+                has_constant = true;
+                break;
             }
         }
         if (!has_constant)

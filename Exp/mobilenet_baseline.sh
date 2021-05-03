@@ -1,1 +1,1 @@
-nnfusion mobilenet_ori.onnx -f onnx  -fblockfusion_level=0
+nnfusion   mobilenet_ori_batch8.onnx  -f onnx  -fblockfusion_level=0

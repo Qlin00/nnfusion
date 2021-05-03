@@ -1,0 +1,4602 @@
+{
+    "features.0.1": {
+        "in_shape": [
+            [
+                64,
+                3,
+                225,
+                225
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                112,
+                112
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                3,
+                3,
+                3
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            2,
+            2
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.1.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                16,
+                114,
+                114
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                112,
+                112
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                1,
+                3,
+                3
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 16
+    },
+    "features.1.conv.1.se.1": {
+        "in_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                8,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                8,
+                16,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.1.conv.1.se.3": {
+        "in_shape": [
+            [
+                64,
+                8,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                8,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.1.conv.2": {
+        "in_shape": [
+            [
+                64,
+                16,
+                112,
+                112
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                112,
+                112
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                16,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.2.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                16,
+                114,
+                114
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                112,
+                112
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                1,
+                3,
+                3
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 16
+    },
+    "features.2.conv.1.se.1": {
+        "in_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                4,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                4,
+                16,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.2.conv.1.se.3": {
+        "in_shape": [
+            [
+                64,
+                4,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                4,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.2.conv.2": {
+        "in_shape": [
+            [
+                64,
+                16,
+                112,
+                112
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                112,
+                112
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                16,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.3.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                16,
+                112,
+                112
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                48,
+                112,
+                112
+            ]
+        ],
+        "weight_shape": [
+            [
+                48,
+                16,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.3.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                48,
+                113,
+                113
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                48,
+                56,
+                56
+            ]
+        ],
+        "weight_shape": [
+            [
+                48,
+                1,
+                3,
+                3
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            2,
+            2
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 48
+    },
+    "features.3.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                48,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                4,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                4,
+                48,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.3.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                4,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                48,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                48,
+                4,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.3.conv.3": {
+        "in_shape": [
+            [
+                64,
+                48,
+                56,
+                56
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                56,
+                56
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                48,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.4.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                16,
+                56,
+                56
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                80,
+                56,
+                56
+            ]
+        ],
+        "weight_shape": [
+            [
+                80,
+                16,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.4.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                80,
+                58,
+                58
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                80,
+                56,
+                56
+            ]
+        ],
+        "weight_shape": [
+            [
+                80,
+                1,
+                3,
+                3
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 80
+    },
+    "features.4.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                80,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                6,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                6,
+                80,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.4.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                6,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                80,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                80,
+                6,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.4.conv.3": {
+        "in_shape": [
+            [
+                64,
+                80,
+                56,
+                56
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                56,
+                56
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                80,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.5.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                16,
+                56,
+                56
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                80,
+                56,
+                56
+            ]
+        ],
+        "weight_shape": [
+            [
+                80,
+                16,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.5.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                80,
+                58,
+                58
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                80,
+                56,
+                56
+            ]
+        ],
+        "weight_shape": [
+            [
+                80,
+                1,
+                3,
+                3
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 80
+    },
+    "features.5.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                80,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                6,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                6,
+                80,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.5.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                6,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                80,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                80,
+                6,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.5.conv.3": {
+        "in_shape": [
+            [
+                64,
+                80,
+                56,
+                56
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                56,
+                56
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                80,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.6.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                16,
+                56,
+                56
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                80,
+                56,
+                56
+            ]
+        ],
+        "weight_shape": [
+            [
+                80,
+                16,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.6.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                80,
+                59,
+                59
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                80,
+                28,
+                28
+            ]
+        ],
+        "weight_shape": [
+            [
+                80,
+                1,
+                5,
+                5
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            2,
+            2
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 80
+    },
+    "features.6.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                80,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                6,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                6,
+                80,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.6.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                6,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                80,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                80,
+                6,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.6.conv.3": {
+        "in_shape": [
+            [
+                64,
+                80,
+                28,
+                28
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                32,
+                28,
+                28
+            ]
+        ],
+        "weight_shape": [
+            [
+                32,
+                80,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.7.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                32,
+                28,
+                28
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                128,
+                28,
+                28
+            ]
+        ],
+        "weight_shape": [
+            [
+                128,
+                32,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.7.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                128,
+                32,
+                32
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                128,
+                28,
+                28
+            ]
+        ],
+        "weight_shape": [
+            [
+                128,
+                1,
+                5,
+                5
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 128
+    },
+    "features.7.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                128,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                10,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                10,
+                128,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.7.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                10,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                128,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                128,
+                10,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.7.conv.3": {
+        "in_shape": [
+            [
+                64,
+                128,
+                28,
+                28
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                32,
+                28,
+                28
+            ]
+        ],
+        "weight_shape": [
+            [
+                32,
+                128,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.8.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                32,
+                28,
+                28
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                128,
+                28,
+                28
+            ]
+        ],
+        "weight_shape": [
+            [
+                128,
+                32,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.8.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                128,
+                32,
+                32
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                128,
+                28,
+                28
+            ]
+        ],
+        "weight_shape": [
+            [
+                128,
+                1,
+                5,
+                5
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 128
+    },
+    "features.8.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                128,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                10,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                10,
+                128,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.8.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                10,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                128,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                128,
+                10,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.8.conv.3": {
+        "in_shape": [
+            [
+                64,
+                128,
+                28,
+                28
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                32,
+                28,
+                28
+            ]
+        ],
+        "weight_shape": [
+            [
+                32,
+                128,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.9.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                32,
+                28,
+                28
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                128,
+                28,
+                28
+            ]
+        ],
+        "weight_shape": [
+            [
+                128,
+                32,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.9.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                128,
+                29,
+                29
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                128,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                128,
+                1,
+                3,
+                3
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            2,
+            2
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 128
+    },
+    "features.9.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                128,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                10,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                10,
+                128,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.9.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                10,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                128,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                128,
+                10,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.9.conv.3": {
+        "in_shape": [
+            [
+                64,
+                128,
+                14,
+                14
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                48,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                48,
+                128,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.10.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                48,
+                14,
+                14
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                240,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                240,
+                48,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.10.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                240,
+                16,
+                16
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                240,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                240,
+                1,
+                3,
+                3
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 240
+    },
+    "features.10.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                240,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                240,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.10.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                240,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                240,
+                16,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.10.conv.3": {
+        "in_shape": [
+            [
+                64,
+                240,
+                14,
+                14
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                48,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                48,
+                240,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.11.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                48,
+                14,
+                14
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                240,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                240,
+                48,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.11.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                240,
+                16,
+                16
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                240,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                240,
+                1,
+                3,
+                3
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 240
+    },
+    "features.11.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                240,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                240,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.11.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                240,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                240,
+                16,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.11.conv.3": {
+        "in_shape": [
+            [
+                64,
+                240,
+                14,
+                14
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                48,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                48,
+                240,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.12.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                48,
+                14,
+                14
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                240,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                240,
+                48,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.12.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                240,
+                16,
+                16
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                240,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                240,
+                1,
+                3,
+                3
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 240
+    },
+    "features.12.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                240,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                240,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.12.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                240,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                240,
+                16,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.12.conv.3": {
+        "in_shape": [
+            [
+                64,
+                240,
+                14,
+                14
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                48,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                48,
+                240,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.13.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                48,
+                14,
+                14
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                240,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                240,
+                48,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.13.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                240,
+                18,
+                18
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                240,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                240,
+                1,
+                5,
+                5
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 240
+    },
+    "features.13.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                240,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                240,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.13.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                240,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                240,
+                16,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.13.conv.3": {
+        "in_shape": [
+            [
+                64,
+                240,
+                14,
+                14
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                64,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                64,
+                240,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.14.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                64,
+                14,
+                14
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                336,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                336,
+                64,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.14.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                336,
+                18,
+                18
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                336,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                336,
+                1,
+                5,
+                5
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 336
+    },
+    "features.14.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                336,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                336,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.14.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                336,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                336,
+                16,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.14.conv.3": {
+        "in_shape": [
+            [
+                64,
+                336,
+                14,
+                14
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                64,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                64,
+                336,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.15.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                64,
+                14,
+                14
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                336,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                336,
+                64,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.15.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                336,
+                18,
+                18
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                336,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                336,
+                1,
+                5,
+                5
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 336
+    },
+    "features.15.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                336,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                336,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.15.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                336,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                336,
+                16,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.15.conv.3": {
+        "in_shape": [
+            [
+                64,
+                336,
+                14,
+                14
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                64,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                64,
+                336,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.16.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                64,
+                14,
+                14
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                336,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                336,
+                64,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.16.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                336,
+                18,
+                18
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                336,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                336,
+                1,
+                5,
+                5
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 336
+    },
+    "features.16.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                336,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                336,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.16.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                336,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                336,
+                16,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.16.conv.3": {
+        "in_shape": [
+            [
+                64,
+                336,
+                14,
+                14
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                64,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                64,
+                336,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.17.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                64,
+                14,
+                14
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                336,
+                14,
+                14
+            ]
+        ],
+        "weight_shape": [
+            [
+                336,
+                64,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.17.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                336,
+                17,
+                17
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                336,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                336,
+                1,
+                5,
+                5
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            2,
+            2
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 336
+    },
+    "features.17.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                336,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                16,
+                336,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.17.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                16,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                336,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                336,
+                16,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.17.conv.3": {
+        "in_shape": [
+            [
+                64,
+                336,
+                7,
+                7
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                96,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                96,
+                336,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.18.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                96,
+                7,
+                7
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                576,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                576,
+                96,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.18.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                576,
+                11,
+                11
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                576,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                576,
+                1,
+                5,
+                5
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 576
+    },
+    "features.18.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                576,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                32,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                32,
+                576,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.18.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                32,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                576,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                576,
+                32,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.18.conv.3": {
+        "in_shape": [
+            [
+                64,
+                576,
+                7,
+                7
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                96,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                96,
+                576,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.19.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                96,
+                7,
+                7
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                576,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                576,
+                96,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.19.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                576,
+                11,
+                11
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                576,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                576,
+                1,
+                5,
+                5
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 576
+    },
+    "features.19.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                576,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                32,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                32,
+                576,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.19.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                32,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                576,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                576,
+                32,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.19.conv.3": {
+        "in_shape": [
+            [
+                64,
+                576,
+                7,
+                7
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                96,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                96,
+                576,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.20.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                96,
+                7,
+                7
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                576,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                576,
+                96,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.20.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                576,
+                11,
+                11
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                576,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                576,
+                1,
+                5,
+                5
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 576
+    },
+    "features.20.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                576,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                32,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                32,
+                576,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.20.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                32,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                576,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                576,
+                32,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.20.conv.3": {
+        "in_shape": [
+            [
+                64,
+                576,
+                7,
+                7
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                96,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                96,
+                576,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.21.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                96,
+                7,
+                7
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                576,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                576,
+                96,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.21.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                576,
+                11,
+                11
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                576,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                576,
+                1,
+                5,
+                5
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 576
+    },
+    "features.21.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                576,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                32,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                32,
+                576,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.21.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                32,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                576,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                576,
+                32,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.21.conv.3": {
+        "in_shape": [
+            [
+                64,
+                576,
+                7,
+                7
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                96,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                96,
+                576,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.22.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                96,
+                7,
+                7
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                576,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                576,
+                96,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.22.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                576,
+                9,
+                9
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                576,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                576,
+                1,
+                3,
+                3
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 576
+    },
+    "features.22.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                576,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                32,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                32,
+                576,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.22.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                32,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                576,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                576,
+                32,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.22.conv.3": {
+        "in_shape": [
+            [
+                64,
+                576,
+                7,
+                7
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                160,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                160,
+                576,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.23.conv.0.1": {
+        "in_shape": [
+            [
+                64,
+                160,
+                7,
+                7
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                960,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                960,
+                160,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.23.conv.1.1": {
+        "in_shape": [
+            [
+                64,
+                960,
+                9,
+                9
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                960,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                960,
+                1,
+                3,
+                3
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 960
+    },
+    "features.23.conv.2.se.1": {
+        "in_shape": [
+            [
+                64,
+                960,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                48,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                48,
+                960,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.23.conv.2.se.3": {
+        "in_shape": [
+            [
+                64,
+                48,
+                1,
+                1
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                960,
+                1,
+                1
+            ]
+        ],
+        "weight_shape": [
+            [
+                960,
+                48,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.23.conv.3": {
+        "in_shape": [
+            [
+                64,
+                960,
+                7,
+                7
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                160,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                160,
+                960,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    },
+    "features.24.1": {
+        "in_shape": [
+            [
+                64,
+                160,
+                7,
+                7
+            ]
+        ],
+        "out_shape": [
+            [
+                64,
+                640,
+                7,
+                7
+            ]
+        ],
+        "weight_shape": [
+            [
+                640,
+                160,
+                1,
+                1
+            ]
+        ],
+        "type": "<class 'torch.nn.modules.conv.Conv2d'>",
+        "padding": [
+            0,
+            0
+        ],
+        "stride": [
+            1,
+            1
+        ],
+        "dilation": [
+            1,
+            1
+        ],
+        "groups": 1
+    }
+}
