@@ -124,7 +124,7 @@ public:
         NNFUSION_CHECK(succ_quantized == 0 || succ_quantized == successors.size());
         // Generate the new identifier: ori_identifier + ${in_quantize}bit+${out_quatize}bit
 
-        const std::vector<std::string> SUPPORT_PLATFORM = {"CUDA_GPU"};
+        const std::vector<std::string> SUPPORT_PLATFORM = {"CUDA_GPU", "ROCM_GPU"};
         if (identifier != "" &&
             find(SUPPORT_PLATFORM.begin(), SUPPORT_PLATFORM.end(), get_device_str(devtype)) !=
                 SUPPORT_PLATFORM.end())
@@ -330,7 +330,7 @@ public:
         std::string identifier = ctx->generate_identifier();
         std::cout << "Identifier: " << identifier << std::endl;
         
-        const std::vector<std::string> SUPPORT_PLATFORM = {"CUDA_GPU"};
+        const std::vector<std::string> SUPPORT_PLATFORM = {"CUDA_GPU", "ROCM_GPU"};
         if (identifier != "" &&
             find(SUPPORT_PLATFORM.begin(), SUPPORT_PLATFORM.end(), get_device_str(devtype)) !=
                 SUPPORT_PLATFORM.end())

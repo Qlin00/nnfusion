@@ -21,7 +21,7 @@ def inject(jsonf, cuf):
     data[0]["code"] = code
     # print(data[0]["code"])
     with open(jsonf, "w") as f:
-        json.dump(data, f)
+        json.dump(data, f, indent=4)
 
 if args.all:
     PREFIX = args.prefix

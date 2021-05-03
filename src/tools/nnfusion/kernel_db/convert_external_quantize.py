@@ -332,7 +332,7 @@ def gen_config(op_type, kernel, shared_memory, num_sync):
     return config
 
 
-def insert_db(name, resource, platform="CUDA_GPU", tags="", profile="Tesla V100-PCIE-16GB:1"):
+def insert_db(name, resource, platform="ROCM_GPU", tags="", profile="Tesla V100-PCIE-16GB:1"):
     # Todo: More tags could be used to store multiple implementations with the same kernel specs
     in_file = open(name + ".cu")
     json_file = open(name + ".json")
