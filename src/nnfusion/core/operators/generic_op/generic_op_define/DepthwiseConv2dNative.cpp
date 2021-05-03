@@ -31,13 +31,13 @@ REGISTER_OP(DepthwiseConv2dNative)
         bool is_nhwc = (data_format == "NHWC");
 
         const int64_t in_depth = is_nhwc ? input_shape[3] : input_shape[1];
-        NNFUSION_CHECK(in_depth == filter_shape[0]);
-        const int64_t depth_multiplier = filter_shape[1];
+        NNFUSION_CHECK(in_depth == filter_shape[2]);
+        const int64_t depth_multiplier = filter_shape[3];
         const int64_t out_depth = in_depth * depth_multiplier;
         const int64_t input_rows = is_nhwc ? input_shape[1] : input_shape[2];
         const int64_t input_cols = is_nhwc ? input_shape[2] : input_shape[3];
-        const int64_t filter_rows = filter_shape[2];
-        const int64_t filter_cols = filter_shape[3];
+        const int64_t filter_rows = filter_shape[0];
+        const int64_t filter_cols = filter_shape[1];
         const int64_t batch = input_shape[0];
         auto padding_before = op->localOpConfig.getRoot()["padding_before"];
         auto padding_after = op->localOpConfig.getRoot()["padding_after"];

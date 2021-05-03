@@ -150,18 +150,18 @@ namespace nnfusion
                             NNFUSION_CHECK(n_filters_channels == groups)
                                 << "Currently only support depth_multiplier = 1 in DepthwiseConv2d";
 
-                            // // auto reshape_filter_gnode = Reshape<2, 3, 0, 1>(filters);
-                            // // m_graph->add_node(reshape_filter_gnode);
-                            // // m_graph->add_edge(filters, 0, reshape_filter_gnode, 0);
-                            // auto filter_gnode = GetInputNode(all_ng_nodes, node_proto, 1);
+                            // auto reshape_filter_gnode = Reshape<2, 3, 0, 1>(filters);
+                            // m_graph->add_node(reshape_filter_gnode);
+                            // m_graph->add_edge(filters, 0, reshape_filter_gnode, 0);
+                            auto filter_gnode = GetInputNode(all_ng_nodes, node_proto, 1);
 
-                            // nnfusion::AxisVector ng_axis_order(filters_shape.size());
-                            // std::iota(ng_axis_order.begin(), ng_axis_order.end(), 0);
-                            // auto reshape_filter_op = std::make_shared<nnfusion::op::Reshape>(
-                            //     ng_axis_order,
-                            //     nnfusion::Shape({filters_shape[2], filters_shape[3], filters_shape[0], filters_shape[1]}));
-                            // reshape_filter_op->set_name(filter_gnode->get_name() + "_filters_reshape");
-                            // auto reshape_filter_gnode = m_graph->add_node_and_edge(reshape_filter_op, {filter_gnode});
+                            nnfusion::AxisVector ng_axis_order(filters_shape.size());
+                            std::iota(ng_axis_order.begin(), ng_axis_order.end(), 0);
+                            auto reshape_filter_op = std::make_shared<nnfusion::op::Reshape>(
+                                ng_axis_order,
+                                nnfusion::Shape({filters_shape[2], filters_shape[3], filters_shape[0], filters_shape[1]}));
+                            reshape_filter_op->set_name(filter_gnode->get_name() + "_filters_reshape");
+                            auto reshape_filter_gnode = m_graph->add_node_and_edge(reshape_filter_op, {filter_gnode});
 
                             size_t depth_multiplier = 1;
                             nnfusion::op::OpConfig::any myConfig;
@@ -174,9 +174,9 @@ namespace nnfusion
 
                             auto conv_op = std::make_shared<nnfusion::op::GenericOp>(
                                 node_proto.name(), "DepthwiseConv2dNative", myConfig);
-                            // conv_node =
-                            //     m_graph->add_node_and_edge(conv_op, {data, GNodeIndex{reshape_filter_gnode, 0}});
-                            conv_node = m_graph->add_node_and_edge(conv_op, {data, filters});
+                            conv_node =
+                                m_graph->add_node_and_edge(conv_op, {data, GNodeIndex{reshape_filter_gnode, 0}});
+                            // conv_node = m_graph->add_node_and_edge(conv_op, {data, filters});
                         }
                         else
                         {
