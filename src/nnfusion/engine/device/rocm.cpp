@@ -46,7 +46,7 @@ ROCmEngine::ROCmEngine()
     : Engine()
 {
     g_passes->push_back(make_shared<CSEPass>());
-    g_passes->push_back(make_shared<BertFusionPass>());
+
     g_passes->push_back(make_shared<AutodiffPass>());
     g_passes->push_back(make_shared<GradientWeightMappingPass>());
     g_passes->push_back(make_shared<RuntimeConstantFoldingPass>());
@@ -66,6 +66,7 @@ ROCmEngine::ROCmEngine()
     g_passes->push_back(make_shared<SparseKernelPass>());
     g_passes->push_back(make_shared<QuantizeKernelPass>());
     g_passes->push_back(make_shared<BlockQuantizeKernelPass>());
+    g_passes->push_back(make_shared<BertFusionPass>());
 
     g_passes->push_back(make_shared<KernelTuning>());
     g_passes->push_back(make_shared<ProfilingBasedKernelSelector>());
