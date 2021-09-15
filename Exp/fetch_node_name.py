@@ -79,7 +79,7 @@ def generate_cfg_mobilenet_block(fpath, outf):
     with open(outf, 'w') as f:
         for name, shape in zip(names, shapes):
             if shape:
-                prefix='./mobile_block_sparse_data/%d_%d_%d/' %(shape[0], shape[1], shape[2])
+                prefix='./sparse_data/%d_%d_%d/' %(shape[0], shape[1], shape[2])
                 if os.path.exists(prefix) and len(os.listdir(prefix))>2:
                     f.write('%s %d 0 %s %s %s\n'%(name, 8, prefix+'row.bin', prefix+'col.bin',prefix+'val.bin'))
                 else:

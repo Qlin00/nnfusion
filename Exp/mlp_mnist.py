@@ -15,27 +15,7 @@ import time
 import numpy as np
 import copy
 
-class MLP(nn.Module):
-    def __init__(self):
-        super(MLP, self).__init__()
-        self.fc1 = nn.Linear(1024, 1024)
-        # linear layer (n_hidden -> hidden_2)
-        self.fc2 = nn.Linear(1024, 1024)
-        # linear layer (n_hidden -> 10)
-        self.fc3 = nn.Linear(1024, 512)
-        self.fc4 = nn.Linear(512, 10)
-        # dropout layer (p=0.2)
-        # dropout prevents overfitting of data
-        #self.dropout = nn.Dropout(0.2)
 
-    def forward(self, x):
-        # flatten image input
-        x = x.view(-1, 1024)
-        x = self.fc1(x)
-        x = self.fc2(x)
-        x = self.fc3(x)
-        x = self.fc4(x)
-        return x
 
 class MLPSmall(nn.Module):
     def __init__(self):

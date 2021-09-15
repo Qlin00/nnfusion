@@ -2,10 +2,11 @@ import json
 import os
 import sys
 import math
-prefix = 'mobile_kernel_batch8_coarse0.6_quantize'
+
+prefix = './exp_mobile_block_quantize_no_propagation/kernel'
 # with open('Mobilenet_shape.json', 'r') as jf:
 #     data = json.load(jf)
-with open('Mobilenet_coarse0.6_shape_batch8.json', 'r') as jf:
+with open('Mobilenet_shape_batch8.json', 'r') as jf:
     data = json.load(jf)
 os.makedirs(prefix, exist_ok=True)
 djson = {}
@@ -14,6 +15,8 @@ with open('./kernel/conv.json.template', 'r') as jf:
     djson = json.load(jf)
 with open('./kernel/depthwise.template', 'r') as cuf:
     dcu = cuf.read()
+
+djson[0]['dynamic_shared_memory']=0
 
 for conv in data:
     weight_shape = data[conv]['weight_shape'][0]
@@ -63,7 +66,7 @@ for conv in data:
     with open(filepath+'.cu', 'w') as f:
         f.write(code)  
 
-with open('./kernel/dot_add_relu.template', 'r') as cuf:
+with open('./kernel/conv_1x1.template', 'r') as cuf:
     dcu = cuf.read()
 
 for conv in data:
@@ -86,6 +89,7 @@ for conv in data:
     M = in_shape[0]*in_shape[2]*in_shape[3] # N * H * W
     K = in_shape[1]
     N = out_shape[1]
+    
     # if(M%16!=0):
     #     continue
     print(conv)
@@ -93,19 +97,31 @@ for conv in data:
     # assert M%16 ==0
     assert K%16 == 0
     assert N%16==0
-    code=code.replace('MGLOBAL_VALUE', str(M))
-    code=code.replace('KGLOBAL_VALUE', str(K))
-    code=code.replace('NGLOBAL_VALUE', str(N))
-    code=code.replace('MTILES_VALUE', str(int(M/16)))
-    code=code.replace('KTILES_VALUE', str(int(K/16)))
-    code=code.replace('NTILES_VALUE', str(int(N/16)))
-    
-    djson[0]["code"] = code
-    print(weight_shape)
+    config_file = '%d_%d_%d.json' % (M,K,N)
+    config_path = os.path.join('/home/v-linbin/kernel_template/mobilenet_coarse/', config_file)
+    if os.path.exists(config_path):
+        with open(config_path, 'r') as cfg_f:
+            config = json.load(cfg_f)
+        for key in config:
+            code = code.replace(key, str(config[key]))
+        djson[0]["code"] = code
+        # print(weight_shape)
 
-
-    djson[0]['gridDim'][0]=68
-    djson[0]['blockDim'][0] = 256
+        print(config)
+        djson[0]['gridDim'][0]= (config['MGLOBAL_VALUE'] * config['NGLOBAL_VALUE']) / (config['WARP_COL_TILES_VALUE'] * config['BLOCK_COL_WARPS_VALUE'] * config['WARP_ROW_TILES_VALUE'] * config['BLOCK_ROW_WARPS_VALUE'] * 16 * 16)
+        djson[0]['gridDim'][0] = int(math.ceil(djson[0]['gridDim'][0]))
+        djson[0]['blockDim'][0] = config['BLOCK_ROW_WARPS_VALUE'] * config['BLOCK_COL_WARPS_VALUE'] * 32
+        djson[0]['blockDim'][0] = int(math.ceil(djson[0]['blockDim'][0]))
+        import pdb; pdb.set_trace()
+    else:
+        config = {  'M_GLOBAL_VALUE': M, 'K_GLOBAL_VALUE': K, 'N_GLOBAL_VALUE': N, 'CHUNK_K_VALUE' : 1, 'BLOCK_ROW_WARPS_VALUE' : 1, 'BLOCK_COL_WARPS_VALUE' : 2, 'WARP_ROW_TILES_VALUE' : 2, 'WARP_COL_TILES_VALUE' : 1}
+        for key in config:
+            code = code.replace(key, str(config[key]))
+        djson[0]["code"] = code
+        djson[0]['gridDim'][0]= (config['M_GLOBAL_VALUE'] * config['N_GLOBAL_VALUE']) / (config['WARP_COL_TILES_VALUE'] * config['BLOCK_COL_WARPS_VALUE'] * config['WARP_ROW_TILES_VALUE'] * config['BLOCK_ROW_WARPS_VALUE'] * 16 * 16)
+        djson[0]['gridDim'][0] = int(math.ceil(djson[0]['gridDim'][0]))
+        djson[0]['blockDim'][0] = config['BLOCK_ROW_WARPS_VALUE'] * config['BLOCK_COL_WARPS_VALUE'] * 32
+        djson[0]['blockDim'][0] = int(math.ceil(djson[0]['blockDim'][0]))
     file_name = 'conv1x1_'+str(M)+'_'+str(K)+'_'+str(N)
     filepath = os.path.join(prefix, file_name)
     with open(filepath+'.json', 'w') as jf:

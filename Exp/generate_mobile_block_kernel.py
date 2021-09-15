@@ -2,7 +2,7 @@ import json
 import os
 import sys
 import math
-prefix = 'mobile_kernel_batch8_block_quantize'
+prefix = 'exp_mobile_block_quantize/kernel'
 # with open('Mobilenet_shape.json', 'r') as jf:
 #     data = json.load(jf)
 with open('Mobilenet_block_shape_batch8.json', 'r') as jf:
@@ -14,6 +14,8 @@ with open('./kernel/conv.json.template', 'r') as jf:
     djson = json.load(jf)
 with open('./kernel/depthwise.template', 'r') as cuf:
     dcu = cuf.read()
+
+djson[0]['dynamic_shared_memory']=0
 
 for conv in data:
     weight_shape = data[conv]['weight_shape'][0]
@@ -64,7 +66,7 @@ for conv in data:
     with open(filepath+'.cu', 'w') as f:
         f.write(code)  
 
-with open('./kernel/block_dot_add.template', 'r') as cuf:
+with open('./kernel/block_conv_1x1.template', 'r') as cuf:
     dcu = cuf.read()
 
 for conv in data:
@@ -94,27 +96,37 @@ for conv in data:
     print(conv)
     print(M,K,N)
     # assert M%16 ==0
-    cfg_prefix = '/data/znx/nnfusion/Exp/kernel/mobile_block_config'
+    cfg_prefix = '/home/v-linbin/kernel_template/mobilenet_block/'
     filename = '%d_%d_%d.json' %(M,K,N)
     fpath = os.path.join(cfg_prefix, filename)
-    if not os.path.exists(fpath):
-        print(fpath, 'not found')
+    if K<=64:
         continue
-    with open(fpath, 'r') as jf:
-        config = json.load(jf)
-    config.update( { 'CHUNK_K_VAL': 8, 'WARP_COL_TILES_VAL': 2, 'WARP_ROW_TILES_VAL': 4, 'BLOCK_COL_WARPS_VAL': 4, 'BLOCK_ROW_WARPS_VAL': 2})
-    assert K%16 == 0
-    assert N%16==0
-    for key in config:
-        value = str(config[key])
-        code = code.replace(key, value)
-    
-    djson[0]["code"] = code
-    print(weight_shape)
+    if os.path.exists(fpath):
+        with open(fpath, 'r') as jf:
+            config = json.load(jf)
+        assert K%16 == 0
+        assert N%16==0
+        for key in config:
+            value = str(config[key])
+            code = code.replace(key, value)
+        
+        djson[0]["code"] = code
+        print(weight_shape)
 
+        djson[0]['gridDim'][0]= (config['M_GLOBAL_VALUE'] * config['N_GLOBAL_VALUE']) / (config['WARP_COL_TILES_VALUE'] * config['BLOCK_COL_WARPS_VALUE'] * config['WARP_ROW_TILES_VALUE'] * config['BLOCK_ROW_WARPS_VALUE'] * 16 * 16)
+        djson[0]['gridDim'][0] = int(math.ceil(djson[0]['gridDim'][0]))
+        djson[0]['blockDim'][0] = config['BLOCK_ROW_WARPS_VALUE'] * config['BLOCK_COL_WARPS_VALUE'] * 32
 
-    djson[0]['gridDim'][0]= (config['BLOCK_ROW_WARPS_VAL'] * config['BLOCK_COL_WARPS_VAL']) * 32
-    djson[0]['blockDim'][0] = (config['M_GLOBAL_VAL'] * config['N_GLOBAL_VAL']) / (config['BLOCK_ROW_WARPS_VAL'] * config['WARP_ROW_TILES_VAL'] * 16 * config['BLOCK_COL_WARPS_VAL'] * config['WARP_COL_TILES_VAL'] * 16)
+    else:
+        config = {  'M_GLOBAL_VALUE': M, 'K_GLOBAL_VALUE': K, 'N_GLOBAL_VALUE': N, 'CHUNK_K_VALUE' : 1, 'BLOCK_ROW_WARPS_VALUE' : 1, 'BLOCK_COL_WARPS_VALUE' : 2, 'WARP_ROW_TILES_VALUE' : 2, 'WARP_COL_TILES_VALUE' : 1}
+        for key in config:
+            code = code.replace(key, str(config[key]))
+        djson[0]["code"] = code
+        djson[0]['gridDim'][0]= (config['M_GLOBAL_VALUE'] * config['N_GLOBAL_VALUE']) / (config['WARP_COL_TILES_VALUE'] * config['BLOCK_COL_WARPS_VALUE'] * config['WARP_ROW_TILES_VALUE'] * config['BLOCK_ROW_WARPS_VALUE'] * 16 * 16)
+        djson[0]['gridDim'][0] = int(math.ceil(djson[0]['gridDim'][0]))
+        djson[0]['blockDim'][0] = config['BLOCK_ROW_WARPS_VALUE'] * config['BLOCK_COL_WARPS_VALUE'] * 32
+        djson[0]['blockDim'][0] = int(math.ceil(djson[0]['blockDim'][0]))
+
     file_name = 'blockconv1x1_'+str(M)+'_'+str(K)+'_'+str(N)
     filepath = os.path.join(prefix, file_name)
     print(filepath)
@@ -123,8 +135,9 @@ for conv in data:
     with open(filepath+'.cu', 'w') as f:
         f.write(code)  
 
-with open('./kernel/dot_add.template', 'r') as cuf:
+with open('./kernel/conv_1x1.template', 'r') as cuf:
     dcu = cuf.read()
+
 
 for conv in data:
     weight_shape = data[conv]['weight_shape'][0]
@@ -153,26 +166,34 @@ for conv in data:
     print(conv)
     print(M,K,N)
     # assert M%16 ==0
-    cfg_prefix = '/data/znx/nnfusion/Exp/kernel/mobile_dot_config'
-    filename = '%d_%d_%d.json' %(M,K,N)
-    fpath = os.path.join(cfg_prefix, filename)
-    if not os.path.exists(fpath):
-        print(fpath, 'not found')
-        continue
-    with open(fpath, 'r') as jf:
-        config = json.load(jf)
     assert K%16 == 0
     assert N%16==0
-    for key in config:
-        value = str(config[key])
-        code = code.replace(key, value)
-    
-    djson[0]["code"] = code
-    print(weight_shape)
+    config_file = '%d_%d_%d.json' % (M,K,N)
+    config_path = os.path.join('/home/v-linbin/kernel_template/mobilenet_coarse/', config_file)
+    if os.path.exists(config_path):
+        with open(config_path, 'r') as cfg_f:
+            config = json.load(cfg_f)
+        for key in config:
+            code = code.replace(key, str(config[key]))
+        djson[0]["code"] = code
+        # print(weight_shape)
 
+        print(config)
+        djson[0]['gridDim'][0]= (config['MGLOBAL_VALUE'] * config['NGLOBAL_VALUE']) / (config['WARP_COL_TILES_VALUE'] * config['BLOCK_COL_WARPS_VALUE'] * config['WARP_ROW_TILES_VALUE'] * config['BLOCK_ROW_WARPS_VALUE'] * 16 * 16)
+        djson[0]['gridDim'][0] = int(math.ceil(djson[0]['gridDim'][0]))
+        djson[0]['blockDim'][0] = config['BLOCK_ROW_WARPS_VALUE'] * config['BLOCK_COL_WARPS_VALUE'] * 32
+        djson[0]['blockDim'][0] = int(math.ceil(djson[0]['blockDim'][0]))
+        import pdb; pdb.set_trace()
+    else:
+        config = {  'M_GLOBAL_VALUE': M, 'K_GLOBAL_VALUE': K, 'N_GLOBAL_VALUE': N, 'CHUNK_K_VALUE' : 1, 'BLOCK_ROW_WARPS_VALUE' : 1, 'BLOCK_COL_WARPS_VALUE' : 2, 'WARP_ROW_TILES_VALUE' : 2, 'WARP_COL_TILES_VALUE' : 1}
+        for key in config:
+            code = code.replace(key, str(config[key]))
+        djson[0]["code"] = code
+        djson[0]['gridDim'][0]= (config['M_GLOBAL_VALUE'] * config['N_GLOBAL_VALUE']) / (config['WARP_COL_TILES_VALUE'] * config['BLOCK_COL_WARPS_VALUE'] * config['WARP_ROW_TILES_VALUE'] * config['BLOCK_ROW_WARPS_VALUE'] * 16 * 16)
+        djson[0]['gridDim'][0] = int(math.ceil(djson[0]['gridDim'][0]))
+        djson[0]['blockDim'][0] = config['BLOCK_ROW_WARPS_VALUE'] * config['BLOCK_COL_WARPS_VALUE'] * 32
+        djson[0]['blockDim'][0] = int(math.ceil(djson[0]['blockDim'][0]))
 
-    djson[0]['gridDim'][0]= (config['BLOCK_ROW_WARPS_VAL'] * config['BLOCK_COL_WARPS_VAL']) * 32
-    djson[0]['blockDim'][0] = (config['M_GLOBAL_VAL'] * config['N_GLOBAL_VAL']) / (config['BLOCK_ROW_WARPS_VAL'] * config['WARP_ROW_TILES_VAL'] * 16 * config['BLOCK_COL_WARPS_VAL'] * config['WARP_COL_TILES_VAL'] * 16)
     file_name = 'conv1x1_'+str(M)+'_'+str(K)+'_'+str(N)
     filepath = os.path.join(prefix, file_name)
     print(filepath)

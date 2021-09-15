@@ -187,7 +187,7 @@ private:
                                               sparse_threshold);
                 // if sparsity ratio is too low then it's not worth
                 std::cout<<" Sparsity Ratio: "<<sparsity_ratio<<std::endl;
-                if (sparsity_ratio < 0.9)
+                if (sparsity_ratio < 0.4)
                     continue;
                 std::shared_ptr<vector<int32_t>> row_idx, col_idx;
                 std::shared_ptr<vector<float>> values;
@@ -236,7 +236,7 @@ private:
                                               sparse_threshold);
                 // if sparsity ratio is too low then it's not worth
                 std::cout<<" Sparsity Ratio: "<<sparsity_ratio<<std::endl;
-                if (sparsity_ratio < 0.9)
+                if (sparsity_ratio < 0.5)
                     continue;
                 std::shared_ptr<vector<int32_t>> row_idx, col_idx;
                 std::shared_ptr<vector<float>> values;
@@ -383,7 +383,7 @@ bool SparseKernelPass::run_on_graph(std::shared_ptr<Graph>& graph)
     if (!enable_sparse_kernel)
         return true;
     NNFUSION_LOG(INFO) << "Enable the Sparse kernels";
-    SparseKernelOptimizer optimizer(graph, FLAGS_fsparse_cfg,1e-6);
+    SparseKernelOptimizer optimizer(graph, FLAGS_fsparse_cfg,1e-9);
     bool re=false;
     if(FLAGS_fsparse_cfg.size()>0){
         // Customized Kernel optimize is in hign priority
