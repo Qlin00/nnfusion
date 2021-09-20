@@ -31,6 +31,7 @@ set(SRC
     sparse_kernel_pass.cpp
     quantize_kernel_pass.cpp
     block_quantize_pass.cpp
+    spargen_pass.cpp
 )
 
 add_library(nnfusion_engine_pass_graph STATIC ${SRC})
