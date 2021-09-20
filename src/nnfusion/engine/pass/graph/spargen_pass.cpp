@@ -1086,12 +1086,57 @@ private:
     std::shared_ptr<nnfusion::cache::KernelCacheManager> cache_manager;
 };
 
+class SparGenOptimizer
+{
+public:
+    SparGenOptimizer(std::shared_ptr<Graph> g, const std::string& cfg_path)
+    {
+        this->m_graph = g;
+        this->cfg_path = cfg_path;
+        parse_cfg();
+        this->cache_manager = std::make_shared<nnfusion::cache::KernelCacheManager>();
+    }
+    void parse_cfg(){
+        // each line configures a kernel in the format of
+        // "TesaID SparsityType Parameters_for_corresponding sparsity pattern"
+    }
+    bool optimize(){
+        if (!cache_manager->is_valid())
+        {
+            NNFUSION_LOG(INFO) << "No valid kernel cache, cannot find quantized kernel";
+            return true;
+        }
+        auto gnodes = m_graph->get_ordered_ops();
+        for(auto node: gnodes)
+        {
+            if((*node)["Kernel_Selection_Result"].is_valid())
+                continue;
+            if (!(*node)["DeviceType"].is_valid())
+            {
+                NNFUSION_CHECK_FAIL()
+                    << "GNode DeviceType should be assigned before this pass：" << node->get_name();
+            }
+            auto n_device_type = (*node)["DeviceType"].as<NNFusion_DeviceType>();
+            NNFUSION_CHECK(n_device_type != UNKNOWN);
+            if((*node)["TESAID"].is_valid()){
+                std::cout<<"SparGen"<<node->get_name()<<" "<<(*node)["TESAID"]<<std::endl;
+            }
+        }
+        exit(-1);
+        return true;
+    }
+private:
+    std::shared_ptr<Graph> m_graph;
+    std::string cfg_path;
+    std::shared_ptr<nnfusion::cache::KernelCacheManager> cache_manager; 
+};
+
 bool SparGenPass::run_on_graph(std::shared_ptr<Graph>& graph)
 {
-    bool enable_quantize_kernel = FLAGS_fspargen_cfg.size() > 0;
-    if (!enable_quantize_kernel)
+    bool enable_spargen = FLAGS_fspargen_cfg.size() > 0;
+    if (!enable_spargen)
         return true;
     NNFUSION_LOG(INFO) << "Enable the BlockQuantized kernels";
-    BlockQuantizeKernelOptimizer optimizer(graph, FLAGS_fspargen_cfg);
+    SparGenOptimizer optimizer(graph, FLAGS_fspargen_cfg);
     return optimizer.optimize();
 }

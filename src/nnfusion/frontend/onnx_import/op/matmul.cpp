@@ -55,9 +55,11 @@ namespace nnfusion
                     {
                         auto dot_op = std::make_shared<nnfusion::op::Dot>(0, false, adj_x, adj_y);
                         //ng_node->set_transpose(transpose_a, transpose_b);
-
+                        // use the output name as the node name here
                         dot_op->set_name(node_proto.output(0));
+                        
                         auto dot_gnode = m_graph->add_node_and_edge(dot_op, {lhs_desc, rhs_desc});
+                        dot_gnode->Set<int>("TESAID", 0);
                         ret.emplace_back(node_proto.output(0), dot_gnode);
                         return ret;
                     }

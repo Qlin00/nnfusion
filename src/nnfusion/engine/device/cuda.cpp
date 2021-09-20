@@ -30,6 +30,7 @@
 #include "nnfusion/engine/pass/graph/sparse_kernel_pass.hpp"
 #include "nnfusion/engine/pass/graph/quantize_kernel_pass.hpp"
 #include "nnfusion/engine/pass/graph/block_quantize_pass.hpp"
+#include "nnfusion/engine/pass/graph/spargen_pass.hpp"
 
 #include "nnfusion/engine/pass/extract_graph_signature.hpp"
 #include "nnfusion/engine/pass/tensor/inplace_tensor_analysis.hpp"
@@ -70,6 +71,7 @@ CudaEngine::CudaEngine()
     g_passes->push_back(make_shared<SparseKernelPass>());
     g_passes->push_back(make_shared<QuantizeKernelPass>());
     g_passes->push_back(make_shared<BlockQuantizeKernelPass>());
+    g_passes->push_back(make_shared<SparGenPass>());
 
     // Kernel selection
     g_passes->push_back(make_shared<KernelTuning>());
