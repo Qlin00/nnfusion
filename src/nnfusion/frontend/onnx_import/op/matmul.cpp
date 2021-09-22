@@ -57,9 +57,9 @@ namespace nnfusion
                         //ng_node->set_transpose(transpose_a, transpose_b);
                         // use the output name as the node name here
                         dot_op->set_name(node_proto.output(0));
-                        
+                        int tesa_id = node.get_attribute_value<int64_t>("tesa_id", -1);
                         auto dot_gnode = m_graph->add_node_and_edge(dot_op, {lhs_desc, rhs_desc});
-                        dot_gnode->Set<int>("TESAID", 0);
+                        dot_gnode->Set<int>("TESAID", std::move(tesa_id));
                         ret.emplace_back(node_proto.output(0), dot_gnode);
                         return ret;
                     }

@@ -1119,7 +1119,7 @@ public:
             auto n_device_type = (*node)["DeviceType"].as<NNFusion_DeviceType>();
             NNFUSION_CHECK(n_device_type != UNKNOWN);
             if((*node)["TESAID"].is_valid()){
-                std::cout<<"SparGen"<<node->get_name()<<" "<<(*node)["TESAID"]<<std::endl;
+                std::cout<<"SparGen!!! "<<node->get_name()<<" "<<(*node)["TESAID"].as<int>()<<std::endl;
             }
         }
         exit(-1);
