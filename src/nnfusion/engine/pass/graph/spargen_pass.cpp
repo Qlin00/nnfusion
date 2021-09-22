@@ -1098,7 +1098,28 @@ public:
     }
     void parse_cfg(){
         // each line configures a kernel in the format of
-        // "TesaID SparsityType Parameters_for_corresponding sparsity pattern"
+        // "TesaID SparsityType Kernel_ID Parameters_for_corresponding sparsity pattern"
+        ifstream cfg_file(this->cfg_path.c_str());
+        assert(cfg_file.good());
+        std::string line;
+        while(std::getline(cfg_file, line)){
+            std::istringstream iss(line);
+            int tesa_id;
+            string sparse_type, kernel_id;
+            iss >> tesa_id >> sparse_type >> kernel_id;
+            if (sparse_type == "BlockSparse"){
+                string row_f, col_f, value_f;
+                iss >> row_f >> col_f >> value_f;
+                this->kernel_id[tesa_id] = kernel_id;
+                this->parameters[tesa_id] = vector<std::string>({row_f, col_f, value_f});
+            }else if(sparse_type == "CuSparse"){
+
+            }else{
+                throw std::invalid_argument("Not supported Sparse Type");
+            }
+            
+
+        }
     }
     bool optimize(){
         if (!cache_manager->is_valid())
@@ -1120,16 +1141,161 @@ public:
             NNFUSION_CHECK(n_device_type != UNKNOWN);
             if((*node)["TESAID"].is_valid()){
                 std::cout<<"SparGen!!! "<<node->get_name()<<" "<<(*node)["TESAID"].as<int>()<<std::endl;
+                optimize_kernel(node);
             }
         }
         exit(-1);
         return true;
     }
+
+    void optimize_kernel(std::shared_ptr<GNode> target_node){
+        NNFUSION_LOG(INFO) << "Optimize the Node "<< target_node->get_name()<<" by SparGen";
+        if (target_node->get_op_type() == "Dot"){
+            DotSparseOptimize(target_node);
+        }else if (target_node->get_op_type() == "Convolution"){
+            
+        }else if (target_node->get_op_type() == "DepthwiseConv2dNative"){
+
+        }
+
+    }
+
+    void DotSparseOptimize(std::shared_ptr<GNode> dot_node){
+        assert(dot_node->get_op_type() == "Dot");
+        int tesa_id = (*dot_node)["TESAID"].as<int>();
+        std::string sparse_type = this->sparse_type[tesa_id];
+        vector<std::shared_ptr<GNode>> fusible_nodes = get_dot_fusible_nodes(dot_node);
+        std::string identifier = this->kernel_id[tesa_id];
+        if (sparse_type == "Block"){
+            assert(this->parameters[tesa_id].size()==3);
+            
+        }else if(sparse_type == ""){
+
+        }
+    }
+
 private:
+
+    vector<std::shared_ptr<GNode>> get_dot_fusible_nodes(std::shared_ptr<GNode> dot_node)
+    {
+        vector<std::shared_ptr<GNode>> fused_op;
+        auto succs = find_successors(dot_node);
+        if (succs.size() == 0)
+            // return
+            return vector<std::shared_ptr<GNode>>();
+        auto son_node = succs[0];
+        if (son_node->get_op_type() == "Add")
+        {
+            fused_op.push_back(son_node);
+            auto grandsons = find_successors(son_node);
+            if (grandsons.size() > 0)
+            {
+                if (grandsons[0]->get_op_type() == "Relu")
+                {
+                    fused_op.push_back(grandsons[0]);
+                }
+            }
+        }
+        else if (son_node->get_op_type() == "Relu")
+        {
+            fused_op.push_back(son_node);
+        }
+        return fused_op;
+    }
+
+    nnfusion::cache::KernelEntry_p fetch_kernel(std::shared_ptr<cache::KernelCacheManager> cache_manager,
+                                                string identifier,
+                                                NNFusion_DeviceType devtype)
+    {
+        std::cout << "Fetch Kernel by the Identifier: " << identifier << std::endl;
+        const std::vector<std::string> SUPPORT_PLATFORM = {"CUDA_GPU", "CPU"};
+        if (identifier != "" &&
+            find(SUPPORT_PLATFORM.begin(), SUPPORT_PLATFORM.end(), get_device_str(devtype)) !=
+                SUPPORT_PLATFORM.end())
+        {
+
+            auto fetched = cache_manager->fetch_all(identifier, get_device_str(devtype));
+            nnfusion::cache::KernelEntry_p kernel_entry = nullptr;
+            double kernel_time = 1000000000;
+            std::cout << "Fetch" << fetched.size() << " Kernels from Kernel Cache!!!!!"
+                      << std::endl;
+            // Currently pick the first matched kernel
+            for (auto fetch_entry : fetched)
+            {
+                std::cout << "Find Matched quantize kernel" << std::endl;
+                if (kernel_entry == nullptr)
+                //fetch_entry->miscs["time"] < kernel_time)
+                {
+                    kernel_entry = fetch_entry;
+                    break;
+                    // kernel_time = fetch_entry->miscs["time"];
+                }
+            }
+
+            if (kernel_entry)
+                NNFUSION_CHECK(kernel_entry->tags.find("CudaEmitter") != kernel_entry->tags.end());
+            return kernel_entry;
+            // if (kernel_entry != nullptr)
+            // {
+            //     NNFUSION_CHECK(kernel_entry->tags.find("CudaEmitter") != kernel_entry->tags.end());
+            //     auto kernel = std::make_shared<kernels::cuda::CacheCudaEmitter>(ctx, kernel_entry);
+            //     if (kernel->get_or_emit_source())
+            //     {
+            //         return std::make_pair(devtype, kernel);
+            //     }
+            // }
+        }
+        return nullptr;
+    }
+
+    vector<std::shared_ptr<GNode>> find_successors(std::shared_ptr<GNode> gnode)
+    {
+        vector<std::shared_ptr<GNode>> successors;
+        const std::set<std::shared_ptr<nnfusion::graph::Edge>>& out_edges = gnode->get_out_edges();
+        for (auto edge : out_edges)
+        {
+            successors.push_back(edge->get_dst());
+        }
+        return successors;
+    }
+    vector<std::shared_ptr<GNode>> find_predecessors(std::shared_ptr<GNode> gnode)
+    {
+        vector<std::shared_ptr<GNode>> predecessors;
+        const std::set<std::shared_ptr<nnfusion::graph::Edge>>& in_edges = gnode->get_in_edges();
+        for (auto edge : in_edges)
+        {
+            predecessors.push_back(edge->get_src());
+        }
+        return predecessors;
+    }
+    vector<std::shared_ptr<GNode>> find_all_predecessors(std::shared_ptr<GNode> gnode)
+    {
+        vector<std::shared_ptr<GNode>> result;
+        auto predecessors = find_predecessors(gnode);
+        result.insert(result.end(), predecessors.begin(), predecessors.end());
+        for (auto father : predecessors)
+        {
+            auto grandfathers = find_all_predecessors(father);
+            result.insert(result.end(), grandfathers.begin(), grandfathers.end());
+        }
+        return result;
+    }
+
+    void load_from_file(char* ptr, size_t buff_size, string filepath)
+    {
+        std::ifstream fin(filepath, ios::in|ios::binary);
+        fin.read(ptr, buff_size);
+    }
+
     std::shared_ptr<Graph> m_graph;
     std::string cfg_path;
-    std::shared_ptr<nnfusion::cache::KernelCacheManager> cache_manager; 
+    std::shared_ptr<nnfusion::cache::KernelCacheManager> cache_manager;
+    std::map<int, std::string> kernel_id;
+    std::map<int, std::string> sparse_type;
+    std::map<int, vector<std::string>> parameters;
 };
+
+
 
 bool SparGenPass::run_on_graph(std::shared_ptr<Graph>& graph)
 {
