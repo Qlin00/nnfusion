@@ -53,7 +53,9 @@ public:
                 string row_f, col_f, value_f;
                 iss >> row_f >> col_f >> value_f;
                 this->kernel_id[tesa_id] = kernel_id;
-                this->parameters[tesa_id] = vector<std::string>({row_f, col_f, value_f});
+                this->csr_rows[tesa_id] = row_f;
+                this->csr_cols[tesa_id] = col_f;
+                this->csr_values[tesa_id] = value_f;
             }
             else if (sparse_type == "CuSparse")
             {
