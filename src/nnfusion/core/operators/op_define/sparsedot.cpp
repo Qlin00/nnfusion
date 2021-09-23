@@ -42,6 +42,15 @@ SparseDot::SparseDot(shared_ptr<Dot> ori_dot,
     m_transpose_A = ori_dot->get_transpose_A();
     m_transpose_B = ori_dot->get_transpose_B();
 }
+SparseDot::SparseDot(shared_ptr<Dot> ori_dot
+)
+    : Op("SparseDot")
+// Initialize the SparseDot Op according to the original Dot Op
+{
+    m_reduction_axes_count = ori_dot->get_reduction_axes_count();
+    m_transpose_A = ori_dot->get_transpose_A();
+    m_transpose_B = ori_dot->get_transpose_B();
+}
 
 void SparseDot::validate_and_infer_types(std::shared_ptr<graph::GNode> gnode)
 {
