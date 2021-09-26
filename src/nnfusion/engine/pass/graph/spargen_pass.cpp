@@ -48,6 +48,7 @@ public:
             int tesa_id;
             string sparse_type, kernel_id;
             iss >> tesa_id >> sparse_type >> kernel_id;
+            this->sparse_type[tesa_id] = sparse_type;
             if (sparse_type == "BlockSparse")
             {
                 string row_f, col_f, value_f;
@@ -100,6 +101,7 @@ public:
                 optimize_kernel(node);
             }
         }
+        std::cout<<"Exit the SparGen optimize flow"<<std::endl;
         exit(-1);
         return true;
     }
@@ -127,14 +129,13 @@ public:
         vector<std::shared_ptr<GNode>> fusible_nodes = get_dot_fusible_nodes(dot_node);
         std::string identifier = this->kernel_id[tesa_id];
         auto n_device_type = (*dot_node)["DeviceType"].as<NNFusion_DeviceType>();
-        if (sparse_type == "Block")
+        if (sparse_type == "BlockSparse")
         {
-            assert(this->parameters[tesa_id].size() == 3);
             auto kernel_entry = fetch_kernel(this->cache_manager, identifier, n_device_type);
             if (kernel_entry == nullptr)
                 return;
             BlockDotOptimize(
-                dot_node, kernel_entry, fusible_nodes, this->parameters[tesa_id], n_device_type);
+                dot_node, kernel_entry, fusible_nodes, n_device_type);
         }
         else if (sparse_type == "")
         {
@@ -149,7 +150,6 @@ private:
     void BlockDotOptimize(std::shared_ptr<GNode> dot_node,
                           nnfusion::cache::KernelEntry_p kernel_entry,
                           vector<std::shared_ptr<GNode>> fusible_nodes,
-                          vector<std::string> parameters,
                           NNFusion_DeviceType n_device_type)
     {
         std::cout << "In SparGen BlockDotOptimize"<< std::endl;
@@ -412,7 +412,7 @@ private:
             auto fetched = cache_manager->fetch_all(identifier, get_device_str(devtype));
             nnfusion::cache::KernelEntry_p kernel_entry = nullptr;
             double kernel_time = 1000000000;
-            std::cout << "Fetch" << fetched.size() << " Kernels from Kernel Cache!!!!!"
+            std::cout << "Fetch " << fetched.size() << " Kernels from Kernel Cache!!!!!"
                       << std::endl;
             // Currently pick the first matched kernel
             for (auto fetch_entry : fetched)
@@ -532,7 +532,6 @@ private:
     std::shared_ptr<nnfusion::cache::KernelCacheManager> cache_manager;
     std::map<int, std::string> kernel_id;
     std::map<int, std::string> sparse_type;
-    std::map<int, vector<std::string>> parameters;
     std::map<int, int> need_converter;
     std::map<int, std::string> convert_identifier;
     std::map<std::string, int> name2tesaid;
