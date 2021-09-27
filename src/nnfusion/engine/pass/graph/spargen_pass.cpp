@@ -274,9 +274,12 @@ private:
 
         // we filled the ramdom data temporarily
         // float* quan_weight_data = (float*)malloc(sizeof(float) * weight_count);
-        float* block_weight_rows = (float*)malloc(sizeof(float) * w_shape[0]+1);
+        float* block_weight_rows = (float*)malloc(sizeof(float) * (w_shape[0]+1));
+        memset(block_weight_rows, 0, sizeof(float) * (w_shape[0]+1));
         float* block_weight_cols = (float*)malloc(sizeof(float) * weight_count);
+        memset(block_weight_cols, 0, sizeof(float) * weight_count);
         float* block_weight_values = (float*) malloc(sizeof(float)*weight_count);
+        memset(block_weight_values, 0, sizeof(float) * weight_count);
         load_from_file((char*)block_weight_rows, w_shape[0]+1, this->csr_rows[tesaid]);
         load_from_file((char*)block_weight_cols, weight_count, this->csr_cols[tesaid]);
         load_from_file((char*)block_weight_values, weight_count, this->csr_values[tesaid]);

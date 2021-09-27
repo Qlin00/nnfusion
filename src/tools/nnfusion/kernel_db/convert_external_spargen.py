@@ -96,7 +96,7 @@ param_list = {
     "SparseDot": {
         # activation, w_val, w_row, w_col, c
         'symbol': ['input0', 'input1', 'input2', 'input3', 'output0'],
-        'dtype': ['float*', 'float*', 'int*', 'int*', 'float*',]
+        'dtype': ['float*', 'float*', 'float*', 'float*', 'float*',]
     }
 }
 

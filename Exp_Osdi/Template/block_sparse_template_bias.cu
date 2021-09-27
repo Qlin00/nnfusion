@@ -2,16 +2,6 @@
 
 
 __global__ void BLOCK_SPARSE_MATMUL(float* input0, float* input1,float* input2, float* input3, float* input4, float *output0){
-    /*
-
-    #define OFFSET(row, col, ld) ((row) * ld + col)
-    #define CPU_DEBUG 1
-    #define FETCH_FLOAT4(pointer) (reinterpret_cast<float4*>(&pointer))[0]
-    #define FETCH_UINT32(pointer) (reinterpret_cast<unsigned int*>(&(pointer))[0])
-    #define FETCH_UINT32x4(pointer) (reinterpret_cast<uint4*>(&(pointer))[0])
-    #define FETCH_INT32(pointer) (reinterpret_cast<int*>(&(pointer))[0])
-
-    */
 
     const int BLOCK_SIZE_M=BLOCK_SIZE_M_VALUE;
     const int BLOCK_SIZE_K=BLOCK_SIZE_K_VALUE;
@@ -22,12 +12,12 @@ __global__ void BLOCK_SPARSE_MATMUL(float* input0, float* input1,float* input2, 
     const int M=M_VALUE;
     const int N=N_VALUE;
     const int K=K_VALUE;
-    float * A = reinterpret_cast<float*> input0;
-    float * W_val = input1;
-    int * W_row = reinterpret_cast<int*> input2;
-    int * W_col = reinterpret_cast<int*> input3;
-    float * bias = input4;
-    float * C = output0;
+    float * A = reinterpret_cast<float*>(input0);
+    float * W_val = reinterpret_cast<float*>(input1);
+    int * W_row = reinterpret_cast<int*>(input2);
+    int * W_col = reinterpret_cast<int*>(input3);
+    float * bias = reinterpret_cast<float*>(input4);
+    float * C = reinterpret_cast<float*>(output0);
     int by = blockIdx.y;
     int bx = blockIdx.x;
     int ty = threadIdx.y;

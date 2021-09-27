@@ -28,20 +28,21 @@ with open('nnfusion_cfg/config', 'r') as f:
     for line in lines:
         line = re.split(' ', line)
         tesa_id = int(line[0])
-        kernel_id = line[1]
+        kernel_id = line[2]
         torch_name = id2name[tesa_id][0]
         in_shape = shape_info[torch_name]['in_shape'][0]
         weight_shape = shape_info[torch_name]['weight_shape'][0]
         kv = {}
-        kv["M_VALUE"] = np.prod(in_shape[:-1])
-        kv["K_VALUE"] = in_shape[-1]
-        kv["N_VALUE"] = weight_shape[0]
         kv['BLOCK_SIZE_M_VALUE'] = 32
         kv['BLOCK_SIZE_K_VALUE'] = 32
         kv['BLOCK_SIZE_N_VALUE'] = 32
         kv['THREAD_SIZE_M_VALUE'] = 8
         kv['THREAD_SIZE_K_VALUE'] = 4
         kv['THREAD_SIZE_N_VALUE'] = 8
+        kv["M_VALUE"] = np.prod(in_shape[:-1])
+        kv["K_VALUE"] = in_shape[-1]
+        kv["N_VALUE"] = weight_shape[0]
+
 
         print(in_shape)
         print(weight_shape)
@@ -49,8 +50,9 @@ with open('nnfusion_cfg/config', 'r') as f:
         new_code = code
         for k, v in kv.items():
             new_code = new_code.replace(k, str(v))
-        template['code '] = new_code
-        template['identifier'] = kernel_id
+        # import pdb; pdb.set_trace()
+        template['code'] = new_code + tesa_id * ' '
+        template['kernel_identifier'] = kernel_id
         template['op_type'] = 'SparseDot'
         grid_dim = [kv['M_VALUE']/kv["BLOCK_SIZE_M_VALUE"], kv['N_VALUE']/kv["BLOCK_SIZE_N_VALUE"], 1]
         template['gridDim'] = grid_dim
