@@ -83,19 +83,20 @@ CREATE TABLE IF NOT EXISTS KernelCache(
             SupportOpList.insert(it.first);
         }
         SupportOpList.insert({"Dot",
-			      "QuantizeDot",
-			      "QuantizeConv",
-			      "QuantizeDotAdd",
-			      "QuantizeConvAdd",
-			      "QuantizeDotAddRelu",
-			      "QuantizeConvAddRelu",
-                  "BlockQuantizeDotAdd",
-                  "BlockQuantizeDot",
-                  "BlockQuantizeDotAddRelu",
-                  "BitConverter",
-                               "QuantizeDepthwiseConv2dNative", 
-                               "QuantizeConvolution",
-                               "BlockQuantizeConvolution",
+                              "SparseDot",
+                              "QuantizeDot",
+                              "QuantizeConv",
+                              "QuantizeDotAdd",
+                              "QuantizeConvAdd",
+                              "QuantizeDotAddRelu",
+                              "QuantizeConvAddRelu",
+                              "BlockQuantizeDotAdd",
+                              "BlockQuantizeDot",
+                              "BlockQuantizeDotAddRelu",
+                              "BitConverter",
+                              "QuantizeDepthwiseConv2dNative",
+                              "QuantizeConvolution",
+                              "BlockQuantizeConvolution",
                               "Convolution",
                               "DepthwiseConv2dNative",
                               "AvgPool",
@@ -233,9 +234,8 @@ KernelEntry_p KernelCacheManager::fetch_with_tags(std::string identifier,
         {
             if (matched_kernel->profile.find(device) != matched_kernel->profile.end())
             {
-                if ((efficient &&
-                     matched_kernel->profile[device] * matched_kernel->resource <
-                         target_kernel.profile[device] * target_kernel.resource) ||
+                if ((efficient && matched_kernel->profile[device] * matched_kernel->resource <
+                                      target_kernel.profile[device] * target_kernel.resource) ||
                     ((!efficient) &&
                      matched_kernel->profile[device] < target_kernel.profile[device]))
                 {

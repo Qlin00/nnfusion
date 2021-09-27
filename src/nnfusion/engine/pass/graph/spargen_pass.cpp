@@ -102,7 +102,7 @@ public:
             }
         }
         std::cout<<"Exit the SparGen optimize flow"<<std::endl;
-        exit(-1);
+        // exit(-1);
         return true;
     }
 
@@ -305,6 +305,7 @@ private:
         {
             auto bias_shape = nnfusion::Shape(vector<size_t>(
                 {weight_count})); // TODO currently the memory space for bias is wasted
+                // TODO also load the correct bias weights
             auto bias = std::make_shared<op::Constant>(
                 from<float>(), bias_shape, static_cast<void*>(bias_data));
             auto bias_node = std::make_shared<GNode>(bias, GNodeVector({}));
