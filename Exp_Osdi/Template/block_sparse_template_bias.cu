@@ -1,5 +1,17 @@
-__global__ void BLOCK_SPARSE_MATMUL(float* input0, float* input1,float* input2, float* input3, float* input4, float *output0){
 
+
+
+__global__ void BLOCK_SPARSE_MATMUL(float* input0, float* input1,float* input2, float* input3, float* input4, float *output0){
+    /*
+
+    #define OFFSET(row, col, ld) ((row) * ld + col)
+    #define CPU_DEBUG 1
+    #define FETCH_FLOAT4(pointer) (reinterpret_cast<float4*>(&pointer))[0]
+    #define FETCH_UINT32(pointer) (reinterpret_cast<unsigned int*>(&(pointer))[0])
+    #define FETCH_UINT32x4(pointer) (reinterpret_cast<uint4*>(&(pointer))[0])
+    #define FETCH_INT32(pointer) (reinterpret_cast<int*>(&(pointer))[0])
+
+    */
 
     const int BLOCK_SIZE_M=BLOCK_SIZE_M_VALUE;
     const int BLOCK_SIZE_K=BLOCK_SIZE_K_VALUE;
