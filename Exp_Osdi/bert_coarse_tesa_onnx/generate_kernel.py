@@ -54,9 +54,9 @@ with open('nnfusion_cfg/config', 'r') as f:
         template['code'] = new_code + tesa_id * ' '
         template['kernel_identifier'] = kernel_id
         template['op_type'] = 'SparseDot'
-        grid_dim = [kv['M_VALUE']/kv["BLOCK_SIZE_M_VALUE"], kv['N_VALUE']/kv["BLOCK_SIZE_N_VALUE"], 1]
+        grid_dim = [int(kv['M_VALUE']/kv["BLOCK_SIZE_M_VALUE"]), int(kv['N_VALUE']/kv["BLOCK_SIZE_N_VALUE"]), 1]
         template['gridDim'] = grid_dim
-        block_dim = [kv['BLOCK_SIZE_M_VALUE']/kv['THREAD_SIZE_M_VALUE'], kv['BLOCK_SIZE_N_VALUE']/kv['THREAD_SIZE_N_VALUE'], 1]
+        block_dim = [int(kv['BLOCK_SIZE_M_VALUE']/kv['THREAD_SIZE_M_VALUE']), int(kv['BLOCK_SIZE_N_VALUE']/kv['THREAD_SIZE_N_VALUE']), 1]
         template['blockDim'] = block_dim
         f_path =  os.path.join(prefix, f"{tesa_id}.json")
         print(f_path)

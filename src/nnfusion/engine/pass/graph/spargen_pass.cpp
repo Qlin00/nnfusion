@@ -288,6 +288,7 @@ private:
 
         float* bias_data =
             (float*)malloc(sizeof(float) * weight_count); // TODO use the correct size here
+        memset(bias_data, 0, sizeof(float) * weight_count);
         auto dense_op = std::dynamic_pointer_cast<op::Dot>(dot_node->get_op_ptr());
         auto weight_values_node = create_constant_node(n_device_type, ori_device_id, w_shape, block_weight_values);
         auto weight_row_node = create_constant_node(n_device_type, ori_device_id, vector<size_t>({w_shape[0]+1}), block_weight_rows);
