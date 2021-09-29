@@ -51,12 +51,13 @@ public:
             this->sparse_type[tesa_id] = sparse_type;
             if (sparse_type == "BlockSparse")
             {
-                string row_f, col_f, value_f;
-                iss >> row_f >> col_f >> value_f;
+                string row_f, col_f, value_f, bias_f;
+                iss >> row_f >> col_f >> value_f >> bias_f;
                 this->kernel_id[tesa_id] = kernel_id;
                 this->csr_rows[tesa_id] = row_f;
                 this->csr_cols[tesa_id] = col_f;
                 this->csr_values[tesa_id] = value_f;
+                this->bias_data_path[tesa_id] = bias_f;
             }
             else if (sparse_type == "CuSparse")
             {
@@ -280,9 +281,9 @@ private:
         memset(block_weight_cols, 0, sizeof(float) * weight_count);
         float* block_weight_values = (float*) malloc(sizeof(float)*weight_count);
         memset(block_weight_values, 0, sizeof(float) * weight_count);
-        load_from_file((char*)block_weight_rows, w_shape[0]+1, this->csr_rows[tesaid]);
-        load_from_file((char*)block_weight_cols, weight_count, this->csr_cols[tesaid]);
-        load_from_file((char*)block_weight_values, weight_count, this->csr_values[tesaid]);
+        load_from_file((char*)block_weight_rows, sizeof(float)*(w_shape[0]+1), this->csr_rows[tesaid]);
+        load_from_file((char*)block_weight_cols, sizeof(float)*weight_count, this->csr_cols[tesaid]);
+        load_from_file((char*)block_weight_values, sizeof(float)*weight_count, this->csr_values[tesaid]);
         // TODO load the right value according to the config
        
 
@@ -312,6 +313,9 @@ private:
                 // TODO also load the correct bias weights
             auto bias = std::make_shared<op::Constant>(
                 from<float>(), bias_shape, static_cast<void*>(bias_data));
+            if(this->bias_data_path[tesaid].size()>0){
+                load_from_file((char*)bias_data, sizeof(float)*weight_count, this->bias_data_path[tesaid]);
+            }
             auto bias_node = std::make_shared<GNode>(bias, GNodeVector({}));
             bias->revalidate_and_infer_types(bias_node->shared_from_this());
             bias_node->Set<NNFusion_DeviceType>("DeviceType", move(n_device_type));
@@ -544,6 +548,7 @@ private:
     std::map<int, std::string> csr_rows;
     std::map<int, std::string> csr_cols;
     std::map<int, std::string> csr_values;
+    std::map<int, std::string> bias_data_path;
 };
 
 bool SparGenPass::run_on_graph(std::shared_ptr<Graph>& graph)

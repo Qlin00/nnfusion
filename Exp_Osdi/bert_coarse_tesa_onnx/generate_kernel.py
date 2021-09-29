@@ -9,12 +9,21 @@ import numpy as np
 
 prefix = 'kernel'
 os.makedirs(prefix, exist_ok=True)
-with open('../Template/block_sparse_template_bias.json', 'r') as f:
+with open('../Template/block_sparse_template_bias_row.json', 'r') as f:
     template = json.load(f)
     template = template[0]
 
-with open('../Template/block_sparse_template_bias.cu', 'r') as f:
+with open('../Template/block_sparse_template_bias_row.cu', 'r') as f:
     code = f.read()
+
+
+# with open('../Template/block_sparse_template_bias.json', 'r') as f:
+#     template = json.load(f)
+#     template = template[0]
+
+# with open('../Template/block_sparse_template_bias.cu', 'r') as f:
+#     code = f.read()
+
 
 with open('bert_coarse_pruned_shape.json', 'r') as f:
     shape_info = json.load(f)
@@ -54,9 +63,9 @@ with open('nnfusion_cfg/config', 'r') as f:
         template['code'] = new_code + tesa_id * ' '
         template['kernel_identifier'] = kernel_id
         template['op_type'] = 'SparseDot'
-        grid_dim = [int(kv['M_VALUE']/kv["BLOCK_SIZE_M_VALUE"]), int(kv['N_VALUE']/kv["BLOCK_SIZE_N_VALUE"]), 1]
+        grid_dim = [int(kv['N_VALUE']/kv["BLOCK_SIZE_N_VALUE"]), int(kv['M_VALUE']/kv["BLOCK_SIZE_M_VALUE"]), 1]
         template['gridDim'] = grid_dim
-        block_dim = [int(kv['BLOCK_SIZE_M_VALUE']/kv['THREAD_SIZE_M_VALUE']), int(kv['BLOCK_SIZE_N_VALUE']/kv['THREAD_SIZE_N_VALUE']), 1]
+        block_dim = [int(kv['BLOCK_SIZE_N_VALUE']/kv['THREAD_SIZE_N_VALUE']), int(kv['BLOCK_SIZE_M_VALUE']/kv['THREAD_SIZE_M_VALUE']), 1]
         template['blockDim'] = block_dim
         f_path =  os.path.join(prefix, f"{tesa_id}.json")
         print(f_path)
