@@ -60,7 +60,10 @@ public:
                 this->bias_data_path[tesa_id] = bias_f;
             }
             else if(sparse_type == "BlockQuantize"){
-                // TODO config parse for block sparse + quantization
+                int in_bit, out_bit;
+                iss >> in_bit >> out_bit;
+                this->in_quan_bit[tesa_id] = in_bit;
+                this->out_quan_bit[tesa_id] = out_bit;
                 string row_f, col_f, value_f, scale_integer_f, scale_shift_f, bias_f;
                 iss >> row_f >> col_f >> value_f >> scale_integer_f >> scale_shift_f >> bias_f;
                 this->kernel_id[tesa_id] = kernel_id;
@@ -348,11 +351,11 @@ private:
             input_gv.push_back(bias_node);
             m_graph->add_node(bias_node);
         }
- 
-        auto sparse_dot = std::make_shared<op::SparseDot>(dense_op);
+        auto quan_dot = std::make_shared<op::QuantizeDot>(dense_op, this->out_quan_bit[tesaid]);
+        // auto sparse_dot = std::make_shared<op::SparseDot>(dense_op);
         // auto quan_dot = std::make_shared<op::QuantizeDot>(dense_op, quantize_bit);
 
-        auto sparse_dot_node = std::make_shared<GNode>(sparse_dot, input_gv);
+        auto sparse_dot_node = std::make_shared<GNode>(quan_dot, input_gv);
         sparse_dot_node->Set<NNFusion_DeviceType>("DeviceType", move(n_device_type));
         sparse_dot_node->Set<int>("DeviceID", move(ori_device_id));
         /// Remember after set the input node vector, we still need to set the edge manually!
@@ -751,6 +754,8 @@ private:
     std::map<int, std::string> bias_data_path;
     std::map<int, std::string> scale_integer;
     std::map<int, std::string> scale_shift;
+    std::map<int, int> in_quan_bit;
+    std::map<int, int> out_quan_bit;
 };
 
 bool SparGenPass::run_on_graph(std::shared_ptr<Graph>& graph)

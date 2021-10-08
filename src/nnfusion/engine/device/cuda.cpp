@@ -49,6 +49,8 @@ CudaEngine::CudaEngine()
     : Engine()
 {
     g_passes->push_back(make_shared<CSEPass>());
+    g_passes->push_back(make_shared<BertFusionPass>());
+
     g_passes->push_back(make_shared<AutodiffPass>());
     g_passes->push_back(make_shared<GradientWeightMappingPass>());
     g_passes->push_back(make_shared<RuntimeConstantFoldingPass>());
@@ -72,8 +74,6 @@ CudaEngine::CudaEngine()
     g_passes->push_back(make_shared<BlockQuantizeKernelPass>());
     g_passes->push_back(make_shared<SparGenPass>());
 
-    g_passes->push_back(make_shared<BertFusionPass>());
-    g_passes->push_back(make_shared<DefaultGNodeDeviceDispatcher>());
 
 
     // Kernel selection
