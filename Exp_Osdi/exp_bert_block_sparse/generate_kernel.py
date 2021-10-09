@@ -6,6 +6,12 @@ from numpy import core
 import onnx
 import re
 import numpy as np
+from SparGen.Common.Utils import *
+
+generate_block_sparse_cfg('./tesa', 'nni_weight.pth', './tesaid_2_names', 'nnfusion_cfg', block_h=32, block_w=32)
+
+if os.path.exists('/home/v-linbin/.cache/nnfusion/kernel_cache.db'):
+    os.remove('/home/v-linbin/.cache/nnfusion/kernel_cache.db')
 
 prefix = 'kernel'
 os.makedirs(prefix, exist_ok=True)
@@ -51,7 +57,7 @@ with open('nnfusion_cfg/config', 'r') as f:
         kv["M_VALUE"] = np.prod(in_shape[:-1])
         kv["K_VALUE"] = in_shape[-1]
         kv["N_VALUE"] = weight_shape[0]
-
+        kv['COMMENT_TAG'] = f"TESAID : {tesa_id}"
 
         print(in_shape)
         print(weight_shape)

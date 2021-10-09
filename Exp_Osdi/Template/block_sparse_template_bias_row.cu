@@ -18,7 +18,9 @@ __global__ void BLOCK_SPARSE_MATMUL(float* input0, float* input1,float* input2, 
     int * W_col = reinterpret_cast<int*>(input3);
     float * bias = reinterpret_cast<float*>(input4);
     float * C = reinterpret_cast<float*>(output0);
-
+    /* 
+    COMMENT_TAG
+    */
     int by = blockIdx.y;
     int bx = blockIdx.x;
     int ty = threadIdx.y;

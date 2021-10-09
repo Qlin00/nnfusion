@@ -155,7 +155,8 @@ public:
         }
         else
         {
-            throw std::invalid_argument("Not supported Sparse Type");
+            std::cout << "Skip this Dot node:" << tesa_id << std::endl;
+            // throw std::invalid_argument("Not supported Sparse Type");
         }
     }
 
@@ -526,11 +527,14 @@ private:
             input_gv.push_back(bias_node);
             m_graph->add_node(bias_node);
         }
- 
+        GNodeVector empty_list;
         auto sparse_dot = std::make_shared<op::SparseDot>(dense_op);
         // auto quan_dot = std::make_shared<op::QuantizeDot>(dense_op, quantize_bit);
-
-        auto sparse_dot_node = std::make_shared<GNode>(sparse_dot, input_gv);
+        auto sparse_dot_node = std::make_shared<GNode>(sparse_dot, empty_list);
+        for (int i=0;i<input_gv.size();i++){
+            sparse_dot_node->set_input(i, std::make_shared<Input>(input_gv[i]->get_outputs().at(0)->get_element_type(),
+                                                                  input_gv[i]->get_outputs().at(0)->get_partial_shape()));
+        }
         sparse_dot_node->Set<NNFusion_DeviceType>("DeviceType", move(n_device_type));
         sparse_dot_node->Set<int>("DeviceID", move(ori_device_id));
         /// Remember after set the input node vector, we still need to set the edge manually!
