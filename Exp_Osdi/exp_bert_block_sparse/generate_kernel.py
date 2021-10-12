@@ -7,8 +7,16 @@ import onnx
 import re
 import numpy as np
 from SparGen.Common.Utils import *
+tune_kernel_cfg = {}
+sparse_block = {}
+if os.path.exists('tuning_cfg.json'):
+    with open('tuning_cfg.json', 'r') as f:
+        tune_kernel_cfg = json.load(f)
 
-generate_block_sparse_cfg('./tesa', 'nni_weight.pth', './tesaid_2_names', 'nnfusion_cfg', block_h=32, block_w=32)
+for key in tune_kernel_cfg:
+    sparse_block[int(key)] =  (tune_kernel_cfg[key]['BLOCK_SIZE_K_VALUE'], tune_kernel_cfg[key]['BLOCK_SIZE_K_VALUE']) 
+
+generate_block_sparse_cfg('./tesa', 'nni_weight.pth', './tesaid_2_names', 'nnfusion_cfg', block_h=32, block_w=32, sparse_block_cfg=sparse_block)
 
 if os.path.exists('/home/v-linbin/.cache/nnfusion/kernel_cache.db'):
     os.remove('/home/v-linbin/.cache/nnfusion/kernel_cache.db')
@@ -58,7 +66,8 @@ with open('nnfusion_cfg/config', 'r') as f:
         kv["K_VALUE"] = in_shape[-1]
         kv["N_VALUE"] = weight_shape[0]
         kv['COMMENT_TAG'] = f"TESAID : {tesa_id}"
-
+        if str(tesa_id) in tune_kernel_cfg:
+            kv.update(tune_kernel_cfg[str(tesa_id)])
         print(in_shape)
         print(weight_shape)
         assert in_shape[-1] == weight_shape[1]

@@ -110,7 +110,7 @@ public:
                 optimize_kernel(node);
             }
         }
-        std::cout<<"Exit the SparGen optimize flow"<<std::endl;
+        // std::cout<<"Exit the SparGen optimize flow"<<std::endl;
         // exit(-1);
         return true;
     }
