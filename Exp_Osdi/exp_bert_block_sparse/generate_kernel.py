@@ -16,7 +16,7 @@ if os.path.exists('tuning_cfg_v2.json'):
 for key in tune_kernel_cfg:
     sparse_block[int(key)] =  (tune_kernel_cfg[key]['BLOCK_SIZE_K_VALUE'], tune_kernel_cfg[key]['BLOCK_SIZE_N_VALUE']) 
 
-generate_block_sparse_cfg('./tesa', 'nni_weight.pth', './tesaid_2_names', 'nnfusion_cfg', block_h=32, block_w=32, sparse_block_cfg=sparse_block)
+generate_block_sparse_cfg('./tesa', 'nni_weight.pth', './tesaid_2_names', 'nnfusion_cfg', block_h=8, block_w=128, sparse_block_cfg=sparse_block)
 
 if os.path.exists('/home/v-linbin/.cache/nnfusion/kernel_cache.db'):
     os.remove('/home/v-linbin/.cache/nnfusion/kernel_cache.db')
@@ -56,9 +56,13 @@ with open('nnfusion_cfg/config', 'r') as f:
         in_shape = shape_info[torch_name]['in_shape'][0]
         weight_shape = shape_info[torch_name]['weight_shape'][0]
         kv = {}
-        kv['BLOCK_SIZE_M_VALUE'] = 32
-        kv['BLOCK_SIZE_K_VALUE'] = 32
-        kv['BLOCK_SIZE_N_VALUE'] = 32
+        # kv['BLOCK_SIZE_M_VALUE'] = 32 
+        # kv['BLOCK_SIZE_K_VALUE'] = 32
+        # kv['BLOCK_SIZE_N_VALUE'] = 32
+
+        kv['BLOCK_SIZE_M_VALUE'] = 64 
+        kv['BLOCK_SIZE_K_VALUE'] = 8
+        kv['BLOCK_SIZE_N_VALUE'] = 128
         kv['THREAD_SIZE_M_VALUE'] = 8
         kv['THREAD_SIZE_K_VALUE'] = 4
         kv['THREAD_SIZE_N_VALUE'] = 8
