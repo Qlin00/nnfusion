@@ -49,11 +49,12 @@ public:
             string sparse_type, kernel_id;
             iss >> tesa_id >> sparse_type >> kernel_id;
             this->sparse_type[tesa_id] = sparse_type;
+            this->kernel_id[tesa_id] = kernel_id;
+
             if (sparse_type == "BlockSparse")
             {
                 string row_f, col_f, value_f, bias_f;
                 iss >> row_f >> col_f >> value_f >> bias_f;
-                this->kernel_id[tesa_id] = kernel_id;
                 this->csr_rows[tesa_id] = row_f;
                 this->csr_cols[tesa_id] = col_f;
                 this->csr_values[tesa_id] = value_f;
@@ -67,7 +68,6 @@ public:
                 this->out_quan_bit[tesa_id] = out_bit;
                 string row_f, col_f, value_f, scale_integer_f, scale_shift_f, bias_f;
                 iss >> row_f >> col_f >> value_f >> scale_integer_f >> scale_shift_f >> bias_f;
-                this->kernel_id[tesa_id] = kernel_id;
                 this->csr_rows[tesa_id] = row_f;
                 this->csr_cols[tesa_id] = col_f;
                 this->csr_values[tesa_id] = value_f;
@@ -114,7 +114,7 @@ public:
             }
             auto n_device_type = (*node)["DeviceType"].as<NNFusion_DeviceType>();
             NNFUSION_CHECK(n_device_type != UNKNOWN);
-            if ((*node)["TESAID"].is_valid())
+            if ( (*node)["TESAID"].is_valid() && (*node)["TESAID"].as<int>()>0 )
             {
                 std::cout << "SparGen!!! " << node->get_name() << " " << (*node)["TESAID"].as<int>()
                           << std::endl;
@@ -132,7 +132,7 @@ public:
 
     void optimize_kernel(std::shared_ptr<GNode> target_node)
     {
-        NNFUSION_LOG(INFO) << "Optimize the Node " << target_node->get_name() << " by SparGen";
+        NNFUSION_LOG(INFO) << "Optimize the Node " << target_node->get_name() << " by SparGen  Op_type:" << target_node->get_op_type();
         if (target_node->get_op_type() == "Dot")
         {
             DotOptimize(target_node);
@@ -150,6 +150,23 @@ public:
     {
         std::cout << "In ConvOptimize" << std::endl;
         assert(conv_node->get_op_type() == "Convolution");
+        int tesa_id = (*conv_node)["TESAID"].as<int>();
+        std::string sparse_type = this->sparse_type[tesa_id];
+        vector<std::shared_ptr<GNode>> fusible_nodes = get_conv_fusible_nodes(conv_node);
+        std::string identifier = this->kernel_id[tesa_id];
+        auto n_device_type = (*conv_node)["DeviceType"].as<NNFusion_DeviceType>();
+        auto kernel_entry = fetch_kernel(this->cache_manager, identifier, n_device_type);
+        if (kernel_entry == nullptr)
+            return;
+        if (sparse_type == "Quantize")
+        {
+            ConvQuantizeOptimize(conv_node, kernel_entry, fusible_nodes, n_device_type);
+        }
+        else
+        {
+            throw std::invalid_argument("Not supported Sparse Type");
+        }
+        
     }
     void DepthConvOptimize(std::shared_ptr<GNode> conv_node)
     {
@@ -901,7 +918,7 @@ private:
         return fused_op;
     }
 
-    vector<std::shared_ptr<GNode>> get_depth_conv_fusible_nodes(std::shared_ptr<GNode> conv_node)
+    vector<std::shared_ptr<GNode>> get_conv_fusible_nodes(std::shared_ptr<GNode> conv_node)
     {
         vector<std::shared_ptr<GNode>> fused_op;
         auto succs = find_successors(conv_node);
@@ -935,7 +952,8 @@ private:
         }
         return fused_op;
     }
-    vector<std::shared_ptr<GNode>> get_conv_fusible_nodes(std::shared_ptr<GNode> conv_node)
+
+    vector<std::shared_ptr<GNode>> get_depth_conv_fusible_nodes(std::shared_ptr<GNode> conv_node)
     {
         vector<std::shared_ptr<GNode>> fused_op;
         auto succs = find_successors(conv_node);

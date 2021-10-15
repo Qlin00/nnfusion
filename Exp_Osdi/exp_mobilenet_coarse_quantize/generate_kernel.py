@@ -4,7 +4,7 @@ import json
 from types import CodeType
 import torch
 from numpy import core
-
+import math
 import onnx
 from copy import deepcopy
 import re
@@ -100,7 +100,7 @@ with open('nnfusion_cfg/config', 'r') as f:
                     code = code.replace(k, str(v))
                 depth_template['code'] = code + ' '*tesa_id
                 depth_template['kernel_identifier'] = kernel_id
-                grid_dim = [int(out_shape[2] * out_shape[3] / 512), 1,  1]
+                grid_dim = [math.ceil( out_shape[0] * out_shape[1]* out_shape[2] * out_shape[3] / 512), 1,  1]
                 depth_template['gridDim'] = grid_dim
                 block_dim = [512, 1, 1]
                 depth_template['blockDim'] = block_dim
@@ -115,16 +115,16 @@ with open('nnfusion_cfg/config', 'r') as f:
 
                 kv["M_GLOBAL_VALUE"] = m
                 kv["K_GLOBAL_VALUE"] = k
-                kv["V_GLOBAL_VALUE"] = v
+                kv["N_GLOBAL_VALUE"] = n
                 kv["CHUNK_K_VALUE"] = 1
-                kv["BLOCK_ROW_WARPS_VALUE"] = 3
-                kv["BLOCK_COL_WARPS_VALUE"] = 4
-                kv["WARP_ROW_TILES_VALUE"] = 1
-                kv["WARP_COL_TILES_VALUE"] = 4
+                kv["BLOCK_ROW_WARPS_VALUE"] = 1
+                kv["BLOCK_COL_WARPS_VALUE"] = 2
+                kv["WARP_ROW_TILES_VALUE"] = 2
+                kv["WARP_COL_TILES_VALUE"] = 1
                 block_size_m = 16 * kv['BLOCK_ROW_WARPS_VALUE'] * kv["WARP_ROW_TILES_VALUE"]
                 block_size_n = 16 * kv["BLOCK_COL_WARPS_VALUE"] * kv["WARP_COL_TILES_VALUE"]
                 block_size_k = 16 * kv["CHUNK_K_VALUE"]
-                Block_num = int((m * n) / (block_size_m * block_size_n))
+                Block_num = math.ceil((m * n) / (block_size_m * block_size_n))
                 warp_size =32
                 Thread_per_block = (warp_size * kv["BLOCK_ROW_WARPS_VALUE"] * kv["BLOCK_COL_WARPS_VALUE"])
                 

@@ -181,6 +181,9 @@ namespace nnfusion
                             // conv_node =
                             //     m_graph->add_node_and_edge(conv_op, {data, GNodeIndex{reshape_filter_gnode, 0}});
                             conv_node = m_graph->add_node_and_edge(conv_op, {data, filters});
+                            int tesa_id = node.get_attribute_value<int64_t>("tesa_id", -1);
+                            // std::cout<<"SparGen: get tesa id "<<tesa_id<<std::endl;
+                            conv_node->Set<int>("TESAID", std::move(tesa_id));
                         }
                         else
                         {
