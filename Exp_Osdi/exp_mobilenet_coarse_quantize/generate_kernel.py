@@ -10,7 +10,7 @@ from copy import deepcopy
 import re
 import numpy as np
 from SparGen.Common.Utils import *
-from utils import create_model
+from utils import *
 from shape_hook import ShapeHook
 from nni.compression.pytorch.speedup import ModelSpeedup
 from nni.compression.pytorch.utils import get_module_by_name
@@ -26,11 +26,12 @@ prefix = 'kernel'
 os.makedirs(prefix, exist_ok=True)
 dummy_input = torch.rand(32,3,224,224)
 model = create_model('mobilenet_v1')
-ms = ModelSpeedup(model, dummy_input, 'mask_temp.pth')
-ms.speedup_model()
+# ms = ModelSpeedup(model, dummy_input, 'mask_temp.pth')
+# ms.speedup_model()
+align_speedup(model, dummy_input, 'mask_temp.pth')
 model.load_state_dict(torch.load('finetune_weights.pth'))
-# sh = ShapeHook(model, dummy_input)
-# sh.export('mobilenet_coarse_shape.json')
+sh = ShapeHook(deepcopy(model), dummy_input)
+sh.export('mobilenet_coarse_shape.json')
 tmp_model = deepcopy(model)
 export_tesa(tmp_model, dummy_input, 'nnfusion_cfg')
 

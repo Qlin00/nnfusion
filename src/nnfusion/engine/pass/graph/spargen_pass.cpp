@@ -945,6 +945,33 @@ private:
                 }
             }
         }
+        else if(son_node->get_op_type() == "Add"){
+                auto add_node = son_node;
+                for (auto in_edge : add_node->get_in_edges())
+                {
+                    auto src_node = in_edge->get_src();
+                    if (src_node->is_constant())
+                    {
+                        auto ori_bias_weight = src_node;
+                        auto bias_related = find_all_predecessors(src_node);
+                        fused_op.push_back(add_node);
+                        fused_op.push_back(ori_bias_weight);
+                        fused_op.insert(
+                            fused_op.end(), bias_related.begin(), bias_related.end());
+                    }
+                    else if (src_node->get_op_type() == "Broadcast")
+                    {
+                        auto bias_broadcast = src_node;
+                        auto bias_related = find_all_predecessors(bias_broadcast);
+                        //ori_bias_weight = bias_broadcast->get_in_edge(0)->get_src();
+                        fused_op.push_back(add_node);
+                        fused_op.push_back(bias_broadcast);
+                        fused_op.insert(
+                            fused_op.end(), bias_related.begin(), bias_related.end());
+                    }
+                }
+
+        }
         else if (son_node->get_op_type() == "Relu" || son_node->get_op_type() == "Swish" ||
                  son_node->get_op_type() == "Sigmoid")
         {
