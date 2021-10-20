@@ -954,21 +954,33 @@ private:
                     {
                         auto ori_bias_weight = src_node;
                         auto bias_related = find_all_predecessors(src_node);
-                        fused_op.push_back(add_node);
                         fused_op.push_back(ori_bias_weight);
                         fused_op.insert(
                             fused_op.end(), bias_related.begin(), bias_related.end());
+                        fused_op.push_back(add_node);
+                        
                     }
                     else if (src_node->get_op_type() == "Broadcast")
                     {
                         auto bias_broadcast = src_node;
                         auto bias_related = find_all_predecessors(bias_broadcast);
                         //ori_bias_weight = bias_broadcast->get_in_edge(0)->get_src();
-                        fused_op.push_back(add_node);
                         fused_op.push_back(bias_broadcast);
                         fused_op.insert(
                             fused_op.end(), bias_related.begin(), bias_related.end());
+                        fused_op.push_back(add_node);
+
                     }
+
+                }
+                auto grandsons = find_successors(son_node);
+                if(grandsons.size()>0){
+                    auto grandson = grandsons[0];
+                    if(grandson->get_op_type() == "Relu" ||
+                       grandson->get_op_type() == "Swish"||
+                       grandson->get_op_type() == "Sigmoid"){
+                           fused_op.push_back(grandson);
+                       }
                 }
 
         }
@@ -979,7 +991,6 @@ private:
         }
         return fused_op;
     }
-
     vector<std::shared_ptr<GNode>> get_depth_conv_fusible_nodes(std::shared_ptr<GNode> conv_node)
     {
         vector<std::shared_ptr<GNode>> fused_op;
@@ -1007,6 +1018,45 @@ private:
                 }
             }
         }
+        else if(son_node->get_op_type() == "Add"){
+                auto add_node = son_node;
+                for (auto in_edge : add_node->get_in_edges())
+                {
+                    auto src_node = in_edge->get_src();
+                    if (src_node->is_constant())
+                    {
+                        auto ori_bias_weight = src_node;
+                        auto bias_related = find_all_predecessors(src_node);
+                        fused_op.push_back(ori_bias_weight);
+                        fused_op.insert(
+                            fused_op.end(), bias_related.begin(), bias_related.end());
+                        fused_op.push_back(add_node);
+
+                    }
+                    else if (src_node->get_op_type() == "Broadcast")
+                    {
+                        auto bias_broadcast = src_node;
+                        auto bias_related = find_all_predecessors(bias_broadcast);
+                        //ori_bias_weight = bias_broadcast->get_in_edge(0)->get_src();
+                        fused_op.push_back(bias_broadcast);
+                        fused_op.insert(
+                            fused_op.end(), bias_related.begin(), bias_related.end());
+                        fused_op.push_back(add_node);
+                        
+                    }
+
+                }
+                auto grandsons = find_successors(son_node);
+                if(grandsons.size()>0){
+                    auto grandson = grandsons[0];
+                    if(grandson->get_op_type() == "Relu" ||
+                       grandson->get_op_type() == "Swish"||
+                       grandson->get_op_type() == "Sigmoid"){
+                           fused_op.push_back(grandson);
+                       }
+                }
+
+        }
         else if (son_node->get_op_type() == "Relu" || son_node->get_op_type() == "Swish" ||
                  son_node->get_op_type() == "Sigmoid")
         {
@@ -1014,6 +1064,8 @@ private:
         }
         return fused_op;
     }
+
+
 
     nnfusion::cache::KernelEntry_p
         fetch_kernel(std::shared_ptr<cache::KernelCacheManager> cache_manager,
