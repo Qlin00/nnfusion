@@ -19,13 +19,13 @@ extern "C" __global__ void MatrixMulCUDA_8bit_bias(float *input0, float *input1,
 
 
     // typedef C_LAYOUT wmma::mem_row_major;
-    const unsigned int CHUNK_K=1;
+    const unsigned int CHUNK_K=CHUNK_K_VALUE;
 
-    const unsigned int BLOCK_ROW_WARPS=2;
-    const unsigned int BLOCK_COL_WARPS=2;
+    const unsigned int BLOCK_ROW_WARPS=BLOCK_ROW_WARPS_VALUE;
+    const unsigned int BLOCK_COL_WARPS=BLOCK_COL_WARPS_VALUE;
 
-    const unsigned int WARP_ROW_TILES =1;
-    const unsigned int WARP_COL_TILES =8;
+    const unsigned int WARP_ROW_TILES =WARP_ROW_TILES_VALUE;
+    const unsigned int WARP_COL_TILES =WARP_COL_TILES_VALUE;
 
     const unsigned int WARPS_PER_BLOCK=BLOCK_COL_WARPS * BLOCK_ROW_WARPS;
     const unsigned int THREADS_PER_BLOCK= (WARP_SIZE * WARPS_PER_BLOCK);
