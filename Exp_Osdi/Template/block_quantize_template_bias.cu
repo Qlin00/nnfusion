@@ -11,7 +11,9 @@ extern "C" __global__ void MatrixMulCUDA_8bit_bias(float *input0, float *input1,
     const unsigned int  WMMA_M=16;
     const unsigned int  WMMA_N=16;
     const unsigned int  WMMA_K=16;
-
+    /* 
+    COMMENT_TAG
+    */
     const unsigned int  M_TILES=(M_GLOBAL/M);
     const unsigned int  K_TILES=(K_GLOBAL/K);
     const unsigned int  N_TILES=(N_GLOBAL/N);

@@ -650,8 +650,18 @@ private:
         auto quan_dot = std::make_shared<op::QuantizeDot>(dense_op, this->out_quan_bit[tesaid]);
         // auto sparse_dot = std::make_shared<op::SparseDot>(dense_op);
         // auto quan_dot = std::make_shared<op::QuantizeDot>(dense_op, quantize_bit);
+        GNodeVector empty_list;
+        auto sparse_dot_node = std::make_shared<GNode>(quan_dot, empty_list);
+        // Layernorm fusion may have more than one output tensors, so we use this
+        // way to skip the check on the number of input parameters 
+        for (int i = 0; i < input_gv.size(); i++)
+        {
+            sparse_dot_node->set_input(
+                i,
+                std::make_shared<Input>(input_gv[i]->get_outputs().at(0)->get_element_type(),
+                                        input_gv[i]->get_outputs().at(0)->get_partial_shape()));
+        }
 
-        auto sparse_dot_node = std::make_shared<GNode>(quan_dot, input_gv);
         sparse_dot_node->Set<NNFusion_DeviceType>("DeviceType", move(n_device_type));
         sparse_dot_node->Set<int>("DeviceID", move(ori_device_id));
         /// Remember after set the input node vector, we still need to set the edge manually!

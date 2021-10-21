@@ -49,6 +49,7 @@ with open('nnfusion_cfg/config', 'r') as f:
         kv["BLOCK_COL_WARPS_VALUE"] = 2
         kv["WARP_ROW_TILES_VALUE"] = 2
         kv["WARP_COL_TILES_VALUE"] = 1
+        kv['COMMENT_TAG'] = f"TESAID : {tesa_id}"
 
         print(in_shape)
         print(weight_shape)
