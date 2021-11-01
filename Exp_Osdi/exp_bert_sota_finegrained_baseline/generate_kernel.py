@@ -18,14 +18,14 @@ tesa_path = './tesa'
 state_path = './bert_finegrained_0.95_nomask.pth'
 id_2_maps = './tesaid_2_names'
 out_dir = './nnfusion_cfg'
-
-generate_sputnik_sparse_cfg(tesa_path, state_path, id_2_maps, out_dir)
+prefix = 'kernel'
+# generate_sputnik_sparse_cfg(tesa_path, state_path, id_2_maps, out_dir)
 
 with open('../Template/sputnik_sparse_template.cu') as f:
     code = f.read()
 with open('../Template/sputnik_sparse_template.json') as f:
     template = json.load(f)
-    tempalte = template[0]
+    template = template[0]
 
 
 id2name = torch.load('tesaid_2_names')
@@ -37,7 +37,11 @@ with open('nnfusion_cfg/config', 'r') as f:
         kernel_id = line[2]
         torch_name = id2name[tesa_id][0]
         new_code = code + ' ' * tesa_id
-        tempalte['code'] = new_code
+        template['code'] = new_code
+        # import pdb; pdb.set_trace()
+        template['kernel_identifier'] = kernel_id
+        template['op_type'] = 'SparseDot'
+
         f_path = os.path.join(prefix, f"{tesa_id}.json")
         print(f_path)
         with open(f_path, 'w') as f:
