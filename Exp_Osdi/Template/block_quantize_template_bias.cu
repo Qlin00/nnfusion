@@ -74,12 +74,6 @@ extern "C" __global__ void MatrixMulCUDA_8bit_bias(float *input0, float *input1,
   // Offset in shared memory from which the B matrix is stored.
   const size_t shmem_idx_b_off = BLOCK_COL_TILES * M;       // BLOCK_COL_TILES * M is shared_A row numbers in one block
 
-  // This pointer is used to access the C and D matrix tiles this warp computes.
-  int *shmem_warp_tile_ptr = (int *)&shmem[0][0] +
-                             (warpId / BLOCK_ROW_WARPS) * SHMEM_STRIDE * K * WARP_COL_TILES +    // K * 2 is because one warp calculate k * 2 rows.
-                             (warpId % BLOCK_ROW_WARPS) * SHMEM_OFFSET;
-
-
 
   // Each CTA slides along the 128 x 128 tiles from the top left corner of the
   // matrix to the right and down, and selects the next tile to compute. Once
@@ -118,50 +112,58 @@ extern "C" __global__ void MatrixMulCUDA_8bit_bias(float *input0, float *input1,
 
     // Select what warp copies what matrix to shared memory.
     // Warps 0-3 copy the A matrix, warps 4-7 copy the B matrix.
-    int start_tile = B_row[block_tile_j / WARP_COL_TILES + (warpId % BLOCK_ROW_WARPS)];
-    int end_tile = B_row[block_tile_j / WARP_COL_TILES + (warpId % BLOCK_ROW_WARPS) + 1];
+
+    int start_tile = B_row[block_tile_j / BLOCK_ROW_TILES];
+    int end_tile = B_row[block_tile_j / BLOCK_ROW_TILES + 1];
+
+    // int start_tile = B_row[block_tile_j / WARP_COL_TILES + (warpId % BLOCK_ROW_WARPS)];
+    // int end_tile = B_row[block_tile_j / WARP_COL_TILES + (warpId % BLOCK_ROW_WARPS) + 1];
+
     // Go through the global K dimension by a fixed step at a time.
 #pragma unroll
-    for(int tile_k_idx = start_tile; tile_k_idx < end_tile; tile_k_idx++){
+    for(int tile_k_idx = start_tile; tile_k_idx < end_tile; tile_k_idx += 1){
+
       size_t shmem_idx = 
         warpId < (WARPS_PER_BLOCK / 2)
-          ? (M * (warpId % (WARPS_PER_BLOCK / 2)) * (BLOCK_COL_TILES / (WARPS_PER_BLOCK / 2)))
-          : (N * (warpId % (WARPS_PER_BLOCK / 2)) * (BLOCK_COL_TILES / (WARPS_PER_BLOCK / 2)) + shmem_idx_b_off);
+          ? (warpId % (WARPS_PER_BLOCK / 2)) * CHUNK_COPY_LINES_PER_WARP
+          : (warpId % (WARPS_PER_BLOCK / 2)) * CHUNK_COPY_LINES_PER_WARP + shmem_idx_b_off;
 
       int4 *lane_ptr = NULL;
-      if(warpId < 4){
+      if(warpId < (WARPS_PER_BLOCK / 2)){
         const uint8_t *warp_ptr = &A[block_tile_i * M * K_GLOBAL] +
-          M * K_GLOBAL * (warpId % (WARPS_PER_BLOCK / 2)) * (BLOCK_COL_TILES / (WARPS_PER_BLOCK / 2));
-        lane_ptr = (int4 *)(warp_ptr + B_col[tile_k_idx] * K * CHUNK_K +
-                            (laneId / CHUNK_COPY_LINE_LANES) * K_GLOBAL) +
-                  (laneId % CHUNK_COPY_LINE_LANES);
+          (warpId % (WARPS_PER_BLOCK / 2)) * CHUNK_COPY_LINES_PER_WARP * K_GLOBAL;
+        lane_ptr = (int4 *)(warp_ptr + B_col[ tile_k_idx] * K * CHUNK_K +
+                        (laneId / CHUNK_COPY_LINE_LANES) * K_GLOBAL) +
+                        (laneId % CHUNK_COPY_LINE_LANES);
       }else{
-        const uint8_t *warp_ptr = B_val + tile_k_idx * (M * WARP_COL_TILES) * (K * CHUNK_K);
-        lane_ptr = (int4 *)(warp_ptr + (laneId / CHUNK_COPY_LINE_LANES) * (K * CHUNK_K)) + (laneId % CHUNK_COPY_LINE_LANES);
+        const uint8_t *warp_ptr = B_val + tile_k_idx * (N * BLOCK_ROW_TILES) * (K * CHUNK_K) + 
+          (warpId % (WARPS_PER_BLOCK / 2)) * CHUNK_COPY_LINES_PER_WARP * (K * CHUNK_K);
+        lane_ptr = (int4 *)(warp_ptr + (laneId / CHUNK_COPY_LINE_LANES) * (K * CHUNK_K)) +
+                    (laneId % CHUNK_COPY_LINE_LANES);
       }
+
       // Shift the second half of the warp to the next row / column in the
       // shared memory.
       shmem_idx += laneId / CHUNK_COPY_LINE_LANES;
 
-      int iter_index = warpId < (WARPS_PER_BLOCK / 2) 
-        ? (BLOCK_COL_TILES / (WARPS_PER_BLOCK / 2)) * M / CHUNK_COPY_LINES_PER_WARP 
-        : (BLOCK_ROW_TILES / (WARPS_PER_BLOCK / 2)) * N / CHUNK_COPY_LINES_PER_WARP;
+      int iter_index = warpId < (WARPS_PER_BLOCK / 2)
+        ? (BLOCK_COL_TILES * M) / ((WARPS_PER_BLOCK / 2) * CHUNK_COPY_LINES_PER_WARP)
+        : (BLOCK_ROW_TILES * N) / ((WARPS_PER_BLOCK / 2) * CHUNK_COPY_LINES_PER_WARP);
+
 
       #pragma unroll
-      //for (int i = 0; i < ((WARP_SIZE / 2) / CHUNK_COPY_LINES_PER_WARP) * 2;
-      for (int i = 0; i < iter_index;
-           i++) {
+      for (int i = 0; i < iter_index; i++) {
         // Copy 16 bytes at once in each lane.
         *((int4 *)&shmem[shmem_idx][0] + (laneId % CHUNK_COPY_LINE_LANES)) =
             *lane_ptr;
 
-        // Advance the global memory pointer and the shared memory index.
+        
         lane_ptr = warpId < (WARPS_PER_BLOCK / 2) ?
                     (int4 *)((uint8_t *)lane_ptr +
-                                        K_GLOBAL * CHUNK_COPY_LINES_PER_WARP):
+                                        K_GLOBAL * (WARPS_PER_BLOCK / 2) * CHUNK_COPY_LINES_PER_WARP):
                     (int4 *)((uint8_t *)lane_ptr +
-                                        K * CHUNK_K * CHUNK_COPY_LINES_PER_WARP);
-        shmem_idx += CHUNK_COPY_LINES_PER_WARP;
+                                        K * CHUNK_K * (WARPS_PER_BLOCK / 2) * CHUNK_COPY_LINES_PER_WARP);
+        shmem_idx += (WARPS_PER_BLOCK / 2) * CHUNK_COPY_LINES_PER_WARP;
       }
 
       __syncthreads();
@@ -200,6 +202,11 @@ extern "C" __global__ void MatrixMulCUDA_8bit_bias(float *input0, float *input1,
       __syncthreads();
     }
 
+    // This pointer is used to access the C and D matrix tiles this warp computes.
+    int *shmem_warp_tile_ptr = (int *)&shmem[0][0] +
+    (warpId / BLOCK_ROW_WARPS) * M * WARP_COL_TILES * SHMEM_STRIDE  +    // K * 2 is because one warp calculate k * 2 rows.
+    (warpId % BLOCK_ROW_WARPS) * SHMEM_OFFSET;
+
       // Store the D fragments to shared memory.
 #pragma unroll
     for (int i = 0; i < WARP_COL_TILES; i++) {
@@ -213,14 +220,14 @@ extern "C" __global__ void MatrixMulCUDA_8bit_bias(float *input0, float *input1,
           c[i][j].x[t] = ((c[i][j].x[t] * alpha) >> integer);
         }
 
-        int *tile_ptr = shmem_warp_tile_ptr + i * SHMEM_STRIDE * K + j * N;
+        int *tile_ptr = shmem_warp_tile_ptr + i * M * SHMEM_STRIDE + j * N;
 
         wmma::store_matrix_sync(tile_ptr, c[i][j], SHMEM_STRIDE, wmma::mem_row_major);
       }
     }
 
     __syncthreads();
-
+  
 
     int *shmem_warp_stream_ptr = (int *)&shmem[0][0] + (warpId / BLOCK_ROW_WARPS) * WARP_COL_TILES * M * SHMEM_STRIDE
                                     + (warpId % BLOCK_ROW_WARPS) * WARP_ROW_TILES * N; 
@@ -242,30 +249,10 @@ extern "C" __global__ void MatrixMulCUDA_8bit_bias(float *input0, float *input1,
     for (int i = 0; i < LANE_COL_STRIDE; i++){
       for(int k = 0; k < LANE_ROW_STRIDE; k++){
         *(dst_gmem_lane_stream_ptr + GLOBAL_MEM_STRIDE * i + k) =
-          (uint8_t)*((int *)(shmem_lane_stream_ptr + SHMEM_STRIDE * i + k));
+          (uint8_t)(*(shmem_lane_stream_ptr + SHMEM_STRIDE * i + k));
       }
     }
 
-
-    // This pointer is used to stream the C and D matrices block-wide tile to and
-    // from shared memory.
-
-    /*
-    int *shmem_warp_stream_ptr = (int *)&shmem[0][0] + warpId * SHMEM_STRIDE * K;   // confuse, may be used to read from global memory?
-    const size_t gmem_idx =
-    (block_tile_i + warpId) * M * GLOBAL_MEM_STRIDE + block_tile_j * N;
-    // Now that shared memory contains all the D tiles, stream them to global
-    // memory.
-    uint8_t *dst_gmem_warp_stream_ptr = &D[gmem_idx];
-
-#pragma unroll
-    for (int i = 0; i < K; i++) {
-      for(int k = 0; k < 4; k++){
-        *(dst_gmem_warp_stream_ptr + GLOBAL_MEM_STRIDE * i + laneId * 4 + k) =
-          (uint8_t)*((int *)(shmem_warp_stream_ptr + SHMEM_STRIDE * i + laneId * 4 + k));
-      }
-    }
-    */
     __syncthreads();
 
 }

@@ -5,13 +5,41 @@ import torch
 from numpy import core
 import onnx
 import re
+from copy import deepcopy
 import numpy as np
 from SparGen.Common.Utils import *
 # need to replace for the right quantized values
-generate_block_quantize_cfg('./tesa', 'nni_weight.pth', './tesaid_2_names', 'nnfusion_cfg', block_h=16, block_w=16)
+default_kv = {}
+default_kv["CHUNK_K_VALUE"] = 8
+default_kv["BLOCK_ROW_WARPS_VALUE"] = 1
+default_kv["BLOCK_COL_WARPS_VALUE"] = 2
+default_kv["WARP_ROW_TILES_VALUE"] = 2
+default_kv["WARP_COL_TILES_VALUE"] = 1
+tune_kernel_cfg = {}
+if os.path.exists('tuning_cfg.json'):
+    with open('tuning_cfg.json', 'r') as f:
+        tune_kernel_cfg = json.load(f)
 
+launch_cfg = {}
+tesa = torch.load('./tesa')
+for tesaid in tesa:
+    # if tesaid ==5:
+    #     import pdb; pdb.set_trace()
+    launch_cfg[tesaid] = deepcopy(default_kv)
+    if tesa[tesaid]['weight'].size(1) < 128:
+        launch_cfg[tesaid]['CHUNK_K_VALUE'] = 4
+    if str(tesaid) in tune_kernel_cfg:
+        launch_cfg[tesaid].update(tune_kernel_cfg[str(tesaid)])
+
+
+sparse_block = {}
+for key in launch_cfg:
+    sparse_block[int(key)] =  ( launch_cfg[key]["WARP_ROW_TILES_VALUE"] * launch_cfg[key]["BLOCK_ROW_WARPS_VALUE"] *16, launch_cfg[key]['CHUNK_K_VALUE']* 16) 
+
+generate_block_quantize_cfg('./tesa', 'nni_weight.pth', './tesaid_2_names', 'nnfusion_cfg', sparse_block_cfg=sparse_block)
 if os.path.exists('/home/v-linbin/.cache/nnfusion/kernel_cache.db'):
     os.remove('/home/v-linbin/.cache/nnfusion/kernel_cache.db')
+
 prefix = 'kernel'
 os.makedirs(prefix, exist_ok=True)
 
@@ -41,22 +69,22 @@ with open('nnfusion_cfg/config', 'r') as f:
         in_shape = shape_info[torch_name]['in_shape'][0]
         weight_shape = shape_info[torch_name]['weight_shape'][0]
         kv = {}
-        kv["CHUNK_K_VALUE"] = 1
         kv["M_VALUE"] = np.prod(in_shape[:-1])
         kv["K_VALUE"] = in_shape[-1]
         kv["N_VALUE"] = weight_shape[0]
-        kv["BLOCK_ROW_WARPS_VALUE"] = 1
-        kv["BLOCK_COL_WARPS_VALUE"] = 2
-        kv["WARP_ROW_TILES_VALUE"] = 2
-        kv["WARP_COL_TILES_VALUE"] = 1
+        kv.update(launch_cfg[tesa_id])
         kv['COMMENT_TAG'] = f"TESAID : {tesa_id}"
 
         print(in_shape)
         print(weight_shape)
         assert in_shape[-1] == weight_shape[1]
         new_code = code
+        for k, v in launch_cfg[tesa_id].items():
+            # print(k, v)
+            new_code = new_code.replace(k, str(v))
         for k, v in kv.items():
             new_code = new_code.replace(k, str(v))
+        
         # import pdb; pdb.set_trace()
         template['code'] = new_code + tesa_id * ' '
         template['kernel_identifier'] = kernel_id
