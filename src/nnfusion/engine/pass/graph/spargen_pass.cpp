@@ -216,6 +216,9 @@ public:
         else if(sparse_type == "CuSparse"){
             CusparseDotOptimize(dot_node);
         }
+        else if(sparse_type == "Sputnik"){
+            SputnikDotOptimize(dot_node, fusible_nodes, n_device_type);
+        }
         else
         {
             std::cout << "Skip this Dot node:" << tesa_id << std::endl;
@@ -225,6 +228,175 @@ public:
 
 private:
 
+    std::shared_ptr<vector<int>> SortedRowSwizzle(vector<int> csr_row_index) {
+        // Create our unsorted row indices.
+        int rows = csr_row_index.size()-1;
+        int * row_offsets = (int *)csr_row_index.data();
+        auto swizzle_staging = std::make_shared<vector<int>>(rows);
+        std::iota(swizzle_staging->begin(), swizzle_staging->end(), 0);
+
+        // Argsort the row indices based on their length.
+        std::sort(swizzle_staging->begin(), swizzle_staging->end(),
+                    [&row_offsets](int idx_a, int idx_b) {
+                    int length_a = row_offsets[idx_a + 1] - row_offsets[idx_a];
+                    int length_b = row_offsets[idx_b + 1] - row_offsets[idx_b];
+                    return length_a > length_b;
+                    });
+        return swizzle_staging;
+        // Copy the ordered row indices to the output.
+        // std::memcpy(row_indices, swizzle_staging.data(), sizeof(int) * rows);
+    }
+
+    void SputnikDotOptimize(std::shared_ptr<GNode> dot_node,
+                          vector<std::shared_ptr<GNode>> fusible_nodes,
+                          NNFusion_DeviceType n_device_type){
+        std::cout << "In Sputnik Optimization" <<std::endl;
+        bool has_constant = false;
+        bool has_bias = false;
+        bool has_relu = false;
+        vector<shared_ptr<GNode>> need_remove;
+        shared_ptr<GNode> add_node = nullptr;
+        shared_ptr<GNode> bias_broadcast = nullptr;
+        shared_ptr<GNode> relu_node = nullptr;
+        int tesaid = (*dot_node)["TESAID"].as<int>();
+        for (auto node : fusible_nodes)
+        {
+            if (node->get_op_type() == "Add")
+            {
+                add_node = node;
+                has_bias = true;
+                for (auto in_edge : add_node->get_in_edges())
+                {
+                    auto src_node = in_edge->get_src();
+                    if (src_node->is_constant())
+                    {
+                        auto ori_bias_weight = src_node;
+                        auto bias_related = find_all_predecessors(src_node);
+                        need_remove.push_back(add_node);
+                        need_remove.push_back(ori_bias_weight);
+                        need_remove.insert(
+                            need_remove.end(), bias_related.begin(), bias_related.end());
+                    }
+                    else if (src_node->get_op_type() == "Broadcast")
+                    {
+                        bias_broadcast = src_node;
+                        auto bias_related = find_all_predecessors(bias_broadcast);
+                        //ori_bias_weight = bias_broadcast->get_in_edge(0)->get_src();
+                        need_remove.push_back(add_node);
+                        need_remove.push_back(bias_broadcast);
+                        need_remove.insert(
+                            need_remove.end(), bias_related.begin(), bias_related.end());
+                    }
+                }
+            }
+            else if (node->get_op_type() == "Relu")
+            {
+                has_relu = true;
+                assert(has_bias = true);
+                relu_node = node;
+                need_remove.push_back(relu_node);
+            }
+        }
+        // start to replace the sputnik kernel
+        auto src_node = dot_node->get_in_edge(1)->get_src();
+        if (!src_node->is_constant())
+            return;
+
+        int ori_device_id = (*src_node)["DeviceID"];
+
+        auto weight_constant =
+            std::dynamic_pointer_cast<nnfusion::op::Constant>(src_node->get_op_ptr());
+        auto w_shape = weight_constant->get_shape();
+        size_t weight_count = 1, out_count = 1;
+        for (int i : w_shape)
+            weight_count *= i;
+        auto out_shape = dot_node->get_output_shape(0);
+        for (int i : out_shape)
+            out_count *= i;
+        auto weight_data_ptr = weight_constant->get_data_ptr();
+        assert(weight_data_ptr!=nullptr);
+        float sparsity_ratio = get_sparsity_ratio<float>(static_cast<const float*>(weight_data_ptr),
+                                              nnfusion::shape_size(w_shape),
+                                              sparse_threshold);
+        std::cout << "Sparsity Ratio"<< sparsity_ratio<<std::endl;
+        std::shared_ptr<vector<int32_t>> row_idx, col_idx;
+        std::shared_ptr<vector<float>> values;
+        std::tie(row_idx, col_idx, values) = convert_to_csr<float>(
+        static_cast<const float*>(weight_data_ptr), w_shape, sparse_threshold);
+        int nnz = values->size();
+        // cause that sputnik kernel only support the sparse matric * dense matrix
+        int dim_m = w_shape[0];
+        int dim_k = w_shape[1];
+        int dim_n = out_shape[0];
+
+        auto swizzle_idx = SortedRowSwizzle(*row_idx);
+        auto m_dim_node = create_constant_node(n_device_type, ori_device_id, dim_m);
+        auto k_dim_node = create_constant_node(n_device_type, ori_device_id, dim_k);
+        auto n_dim_node = create_constant_node(n_device_type, ori_device_id, dim_n);
+        auto nnz_node = create_constant_node(n_device_type, ori_device_id, nnz);
+        auto weight_value_node = create_constant_node(n_device_type, ori_device_id, vector<size_t>({values->size()}), values->data());
+        auto weight_row_node = create_constant_node(n_device_type, ori_device_id, vector<size_t>({row_idx->size()}), (float*)row_idx->data());
+        auto weight_col_node = create_constant_node(n_device_type, ori_device_id, vector<size_t>({col_idx->size()}), (float*)col_idx->data());
+        auto swizzle_node = create_constant_node(n_device_type, ori_device_id, vector<size_t>({swizzle_idx->size()}), (float*)swizzle_idx->data());
+        auto activate_node = dot_node->get_in_edge(0)->get_src();
+        
+        GNodeVector input_gv({activate_node, m_dim_node, k_dim_node, n_dim_node, nnz_node, weight_value_node, weight_row_node, weight_col_node, swizzle_node});
+        for(int i=1; i<input_gv.size(); i++){
+            m_graph->add_node(input_gv[i]);
+        }
+        // auto weight_value_node = create_constant_node(n_device_type, ori_device_id, vector<int>({values->size()}), values->data());
+        // TODO: calculate the right bias values for sputnik kernels. currently we just rand
+        if (has_bias){
+            // TODO because the sputnik kernels support add-bias-relu fusion, we should use the right bias values in the future
+            // it's good for the performance of the baseline in this way, so it does not affect the fairness of the comparsion.
+        }
+        GNodeVector empty_list;
+        auto dense_dot = std::dynamic_pointer_cast<op::Dot>(dot_node->get_op_ptr());
+        auto sparse_dot = std::make_shared<op::SputnikDot>(dense_dot);
+        // auto quan_dot = std::make_shared<op::QuantizeDot>(dense_op, quantize_bit);
+        auto sparse_dot_node = std::make_shared<GNode>(sparse_dot, empty_list);
+        for (int i = 0; i < input_gv.size(); i++)
+        {
+            sparse_dot_node->set_input(
+                i,
+                std::make_shared<Input>(input_gv[i]->get_outputs().at(0)->get_element_type(),
+                                        input_gv[i]->get_outputs().at(0)->get_partial_shape()));
+        }
+        sparse_dot_node->Set<NNFusion_DeviceType>("DeviceType", move(n_device_type));
+        sparse_dot_node->Set<int>("DeviceID", move(ori_device_id));
+        /// Remember after set the input node vector, we still need to set the edge manually!
+        for (int i = 0; i < input_gv.size(); i++)
+        {
+            m_graph->add_edge(input_gv.at(i), 0, sparse_dot_node, i);
+        }
+
+        // replace node will revalidate and infer the output tensor
+        auto last_node = dot_node;
+        if (fusible_nodes.size())
+            last_node = fusible_nodes[fusible_nodes.size() - 1];
+
+        auto ori_outputs = last_node->get_outputs();
+        //???
+        for (int i = 0; i < ori_outputs.size(); i++)
+        {
+            sparse_dot_node->set_output(i, ori_outputs[i]);
+        }
+
+        m_graph->replace_node(last_node, sparse_dot_node, false);
+        m_graph->remove_node(src_node);
+        need_remove.push_back(dot_node);
+
+        for (auto tmp_node : need_remove)
+        {
+            std::cout << " Removing " << tmp_node->get_name() << " " << tmp_node->get_op_type()
+                      << std::endl;
+            if (tmp_node != last_node)
+            {
+                m_graph->remove_node(tmp_node);
+            }
+        }
+
+    }
     template <typename scalar_t>
     tuple<std::shared_ptr<vector<int32_t>>,
           std::shared_ptr<vector<int32_t>>,

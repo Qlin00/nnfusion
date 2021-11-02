@@ -88,6 +88,7 @@ set(SRC
     op_define/variable.cpp
     op_define/fused.cpp
     op_define/sparsedot.cpp
+    op_define/sputnikdot.cpp
     op_define/quantizedot.cpp
     op_define/quantize_depth_conv.cpp
     op_define/quantizeconv1x1.cpp

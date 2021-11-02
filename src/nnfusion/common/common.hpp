@@ -103,6 +103,7 @@
 #include "nnfusion/core/operators/op_define/topk.hpp"
 #include "nnfusion/core/operators/op_define/variable.hpp"
 #include "nnfusion/core/operators/op_define/sparsedot.hpp"
+#include "nnfusion/core/operators/op_define/sputnikdot.hpp"
 #include "nnfusion/core/operators/op_define/quantizedot.hpp"
 #include "nnfusion/core/operators/op_define/bitconverter.hpp"
 #include "nnfusion/core/operators/op_define/quantize_depth_conv.hpp"
