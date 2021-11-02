@@ -34,7 +34,7 @@ public:
         this->cfg_path = cfg_path;
         parse_cfg();
         this->cache_manager = std::make_shared<nnfusion::cache::KernelCacheManager>();
-        this->sparse_threshold = 1e-8;
+        this->sparse_threshold = 1e-9;
     }
     void parse_cfg()
     {
@@ -89,6 +89,9 @@ public:
                 this->scale_integer[tesa_id] = scale_integer_f;
                 this->scale_shift[tesa_id] = scale_shift_f;
                 this->bias_data_path[tesa_id] = bias_f;
+            }
+            else if (sparse_type == "Sputnik"){
+
             }
             else
             {
@@ -1614,7 +1617,7 @@ bool SparGenPass::run_on_graph(std::shared_ptr<Graph>& graph)
     bool enable_spargen = FLAGS_fspargen_cfg.size() > 0;
     if (!enable_spargen)
         return true;
-    NNFUSION_LOG(INFO) << "Enable the BlockQuantized kernels";
+    NNFUSION_LOG(INFO) << "Enable the Spargen Passes";
     SparGenOptimizer optimizer(graph, FLAGS_fspargen_cfg);
     return optimizer.optimize();
 }

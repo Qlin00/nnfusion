@@ -46,8 +46,8 @@ LanguageUnit_p cuda::SputnikDot::emit_function_body()
         lu<< "float * values = input6;\n";
         lu<< "int * row_idx = (int *) input7;\n";
         lu<< "int * col_idx = (int *) input8;\n";
-        lu<< "float * output_m = output_0;\n";
-        lu<< "CUDA_SAFE_CALL(CudaSpmm(m, k, n, nnz, row_swizzle, values, row_index, col_index, dense_m, output_m, 0));\n";
+        lu<< "float * output_m = output0;\n";
+        lu<< "CUDA_SAFE_CALL(sputnik::CudaSpmm(m, k, n, nnz, row_swizzle, values, row_idx, col_idx, dense_m, output_m, 0));\n";
     }
     return _lu;
 }
