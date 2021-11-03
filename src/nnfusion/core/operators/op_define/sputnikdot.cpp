@@ -29,13 +29,15 @@ SputnikDot::SputnikDot(size_t reduction_axes_count,
 }
 
 SputnikDot::SputnikDot(shared_ptr<Dot> ori_dot,
-                     size_t sparse_index,
-                     size_t sparse_nnz,
-                     Shape ori_sparse_shape)
+                     int dim_m,
+                     int dim_k,
+                     int dim_n,
+                     int sparse_nnz)
     : Op("SputnikDot")
-    , m_sparse_index(sparse_index)
+    , m_dim_m(dim_m)
+    , m_dim_k(dim_k)
+    , m_dim_n(dim_n)
     , m_sparse_nnz(sparse_nnz)
-    , m_sparse_shape(ori_sparse_shape)
 // Initialize the SputnikDot Op according to the original Dot Op
 {
     m_reduction_axes_count = ori_dot->get_reduction_axes_count();

@@ -34,18 +34,23 @@ LanguageUnit_p cuda::SputnikDot::emit_function_body()
     auto trans_A = sparsedot->get_transpose_A();
     auto trans_B = sparsedot->get_transpose_B();
     auto sparse_idx = sparsedot->get_sparse_index();
+
+    int m = sparsedot->get_dim_m();
+    int k = sparsedot->get_dim_k();
+    int n = sparsedot->get_dim_n();
+    int nnz = sparsedot->get_sparse_nnz();
     LanguageUnit_p _lu(new LanguageUnit(get_function_name()));
     auto& lu = *_lu;
     if(dtype == element::f32){
         lu<< "float * dense_m = input0;\n";
-        lu<< "int m = *((int*)input1);\n";
-        lu<< "int k = *((int*)input2);\n";
-        lu<< "int n = *((int*)input3);\n";
-        lu<< "int nnz = *((int*)input4);\n";
-        lu<< "int * row_swizzle = (int *) input5;\n";
-        lu<< "float * values = input6;\n";
-        lu<< "int * row_idx = (int *) input7;\n";
-        lu<< "int * col_idx = (int *) input8;\n";
+        lu<< "int m = " << m <<";\n";
+        lu<< "int k = " << k <<";\n";
+        lu<< "int n = " << n <<";\n";
+        lu<< "int nnz = "<< nnz << ";\n";
+        lu<< "int * row_swizzle = (int *) input1;\n";
+        lu<< "float * values = input2;\n";
+        lu<< "int * row_idx = (int *) input3;\n";
+        lu<< "int * col_idx = (int *) input4;\n";
         lu<< "float * output_m = output0;\n";
         lu<< "CUDA_SAFE_CALL(sputnik::CudaSpmm(m, k, n, nnz, row_swizzle, values, row_idx, col_idx, dense_m, output_m, 0));\n";
     }

@@ -333,17 +333,17 @@ private:
         int dim_n = out_count/dim_k;
 
         auto swizzle_idx = SortedRowSwizzle(*row_idx);
-        auto m_dim_node = create_constant_node(n_device_type, ori_device_id, dim_m);
-        auto k_dim_node = create_constant_node(n_device_type, ori_device_id, dim_k);
-        auto n_dim_node = create_constant_node(n_device_type, ori_device_id, dim_n);
-        auto nnz_node = create_constant_node(n_device_type, ori_device_id, nnz);
+        // auto m_dim_node = create_constant_node(n_device_type, ori_device_id, dim_m);
+        // auto k_dim_node = create_constant_node(n_device_type, ori_device_id, dim_k);
+        // auto n_dim_node = create_constant_node(n_device_type, ori_device_id, dim_n);
+        // auto nnz_node = create_constant_node(n_device_type, ori_device_id, nnz);
         auto weight_value_node = create_constant_node(n_device_type, ori_device_id, vector<size_t>({values->size()}), values->data());
         auto weight_row_node = create_constant_node(n_device_type, ori_device_id, vector<size_t>({row_idx->size()}), (float*)row_idx->data());
         auto weight_col_node = create_constant_node(n_device_type, ori_device_id, vector<size_t>({col_idx->size()}), (float*)col_idx->data());
         auto swizzle_node = create_constant_node(n_device_type, ori_device_id, vector<size_t>({swizzle_idx->size()}), (float*)swizzle_idx->data());
         auto activate_node = dot_node->get_in_edge(0)->get_src();
         
-        GNodeVector input_gv({activate_node, m_dim_node, k_dim_node, n_dim_node, nnz_node, swizzle_node, weight_value_node, weight_row_node, weight_col_node});
+        GNodeVector input_gv({activate_node, swizzle_node, weight_value_node, weight_row_node, weight_col_node});
         for(int i=1; i<input_gv.size(); i++){
             m_graph->add_node(input_gv[i]);
         }
@@ -355,7 +355,7 @@ private:
         }
         GNodeVector empty_list;
         auto dense_dot = std::dynamic_pointer_cast<op::Dot>(dot_node->get_op_ptr());
-        auto sparse_dot = std::make_shared<op::SputnikDot>(dense_dot);
+        auto sparse_dot = std::make_shared<op::SputnikDot>(dense_dot, dim_m, dim_k, dim_n, nnz);
         // auto quan_dot = std::make_shared<op::QuantizeDot>(dense_op, quantize_bit);
         auto sparse_dot_node = std::make_shared<GNode>(sparse_dot, empty_list);
         for (int i = 0; i < input_gv.size(); i++)
