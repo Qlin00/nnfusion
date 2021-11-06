@@ -321,7 +321,7 @@ private:
         float sparsity_ratio = get_sparsity_ratio<float>(static_cast<const float*>(weight_data_ptr),
                                               nnfusion::shape_size(w_shape),
                                               sparse_threshold);
-        std::cout << "Sparsity Ratio"<< sparsity_ratio<<std::endl;
+        std::cout << "Sparsity Ratio  "<< sparsity_ratio<<std::endl;
         std::shared_ptr<vector<int32_t>> row_idx, col_idx;
         std::shared_ptr<vector<float>> values;
         std::tie(row_idx, col_idx, values) = convert_to_csr<float>(
@@ -417,8 +417,10 @@ private:
             for (int j = 0; j < m_shape[1]; j++)
             {
                 size_t pos = i * m_shape[1] + j;
-                if (data[pos] < threshold)
+                if (abs(data[pos]) < threshold)
+                // if (data[pos] == 0.0)
                 {
+
                     // sparsity
                     continue;
                 }
@@ -439,7 +441,7 @@ private:
         int count = 0;
         for (int i = 0; i < n; i++)
         {
-            if (data[i] <= threshold)
+            if (abs(data[i]) < threshold)
                 count++;
         }
         return count * 1.0 / n;
