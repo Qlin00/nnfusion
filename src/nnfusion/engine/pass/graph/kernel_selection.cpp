@@ -401,6 +401,7 @@ pair<NNFusion_DeviceType, kernels::KernelEmitter::Pointer>
 
 bool FetchBasedSelector::run_on_graph(std::shared_ptr<nnfusion::graph::Graph>& graph)
 {
+    return true;
     auto cache_manager = std::make_shared<cache::KernelCacheManager>();
     if (!cache_manager->is_valid())
     {

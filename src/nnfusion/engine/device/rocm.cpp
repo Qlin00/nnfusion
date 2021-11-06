@@ -67,6 +67,7 @@ ROCmEngine::ROCmEngine()
     g_passes->push_back(make_shared<QuantizeKernelPass>());
     g_passes->push_back(make_shared<BlockQuantizeKernelPass>());
     g_passes->push_back(make_shared<BertFusionPass>());
+    g_passes->push_back(make_shared<DefaultGNodeDeviceDispatcher>());
 
     g_passes->push_back(make_shared<KernelTuning>());
     g_passes->push_back(make_shared<ProfilingBasedKernelSelector>());
