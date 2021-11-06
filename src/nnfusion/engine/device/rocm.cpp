@@ -31,6 +31,7 @@
 #include "nnfusion/engine/pass/tensor/liveness_analysis.hpp"
 #include "nnfusion/engine/pass/tensor/tensor_device_dispatcher.hpp"
 #include "nnfusion/engine/pass/tensor/tensor_memory_layout.hpp"
+#include "nnfusion/engine/pass/graph/spargen_pass.hpp"
 
 #include "nnfusion/engine/pass/codegen/rocm_codegen_pass.hpp"
 
