@@ -1471,7 +1471,7 @@ private:
                      NNFusion_DeviceType devtype)
     {
         std::cout << "Fetch Kernel by the Identifier: " << identifier << std::endl;
-        const std::vector<std::string> SUPPORT_PLATFORM = {"CUDA_GPU", "CPU"};
+        const std::vector<std::string> SUPPORT_PLATFORM = {"CUDA_GPU", "CPU", "ROCM_GPU"};
         if (identifier != "" &&
             find(SUPPORT_PLATFORM.begin(), SUPPORT_PLATFORM.end(), get_device_str(devtype)) !=
                 SUPPORT_PLATFORM.end())

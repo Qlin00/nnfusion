@@ -312,6 +312,10 @@ if __name__ == '__main__':
         os.mkdir(db_path)
     json_file = open(sys.argv[1])
     kernels = json.load(json_file)
+    if len(sys.argv > 1):
+        platform = sys.argv[2]
+    else:
+        platform = "CUDA_GPU"
     # input json file could contain one or more kernels
     if "op_type" in kernels:
         kernels = [kernels]
@@ -356,5 +360,5 @@ if __name__ == '__main__':
         # profile_info = profile(signature, db_path + "profile/")
         profile_info = "Skip the profile"
         print(profile_info, resource, config["num_syncthreads"])
-        insert_db(operator_path + name, resource,
+        insert_db(operator_path + name, resource, platform=platform
                   tags=default_tags, profile=profile_info)
