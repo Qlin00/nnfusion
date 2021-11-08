@@ -220,7 +220,9 @@ public:
             CusparseDotOptimize(dot_node);
         }
         else if(sparse_type == "Sputnik"){
-            SputnikDotOptimize(dot_node, fusible_nodes, n_device_type);
+            // SputnikDotOptimize(dot_node, fusible_nodes, n_device_type);
+            GNodeVector empty_list;
+            SputnikDotOptimize(dot_node, empty_list, n_device_type);
         }
         else
         {
