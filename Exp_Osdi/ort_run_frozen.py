@@ -27,8 +27,6 @@ args = parser.parse_args()
 if not os.path.exists(args.file):
     parser.exit(1, 'The specified file does not exist: {}'.format(args.file))
 
-onnx.checker.check_model(args.file)
-print("ONNX model check passed!")
 
 def get_numpy(tensor):
     # ONNX Data Types Doc: https://github.com/onnx/onnx/blob/master/docs/IR.md#standard-data-types
