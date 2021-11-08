@@ -12,7 +12,9 @@ extern "C" __global__ void MatrixMulCUDA_8bit_bias(float *input0, float *input1,
     const int THREAD_SIZE_M = THREAD_SIZE_M_VALUE;
     const int THREAD_SIZE_K = THREAD_SIZE_K_VALUE;
     const int THREAD_SIZE_N = THREAD_SIZE_N_VALUE;
-
+    /*
+    COMMENT_TAG
+    */
     const int M = GLOBAL_M_VALUE;
     const int K = GLOBAL_k_VALUE;
     const int N = GLOBAL_N_VALUE;
