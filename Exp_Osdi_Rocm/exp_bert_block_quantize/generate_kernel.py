@@ -18,12 +18,14 @@ default_kv["THREAD_SIZE_M_VALUE"] = 8
 default_kv["THREAD_SIZE_K_VALUE"] = 4
 default_kv["THREAD_SIZE_N_VALUE"] = 8
 tune_kernel_cfg = {}
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
 if os.path.exists('tuning_cfg.json'):
     with open('tuning_cfg.json', 'r') as f:
         tune_kernel_cfg = json.load(f)
 
 launch_cfg = {}
-tesa = torch.load('./tesa')
+tesa = torch.load('./tesa', map_location=device)
 for tesaid in tesa:
     # if tesaid ==5:
     #     import pdb; pdb.set_trace()
@@ -56,7 +58,7 @@ with open('../Template/rocm_block_quantize_template_bias.cu', 'r') as f:
 with open('bert_coarse_pruned_shape.json', 'r') as f:
     shape_info = json.load(f)
 
-id2name = torch.load('tesaid_2_names')
+id2name = torch.load('tesaid_2_names', map_location=device)
 
 config = {}
 
@@ -101,4 +103,4 @@ with open('nnfusion_cfg/config', 'r') as f:
         print(f_path)
         with open(f_path, 'w') as f:
             json.dump(template, f)
-        os.system(f"python ../../src/tools/nnfusion/kernel_db/convert_external_spargen.py {f_path}")
+        os.system(f"python ../../src/tools/nnfusion/kernel_db/convert_external_spargen.py {f_path} ROCM_GPU")

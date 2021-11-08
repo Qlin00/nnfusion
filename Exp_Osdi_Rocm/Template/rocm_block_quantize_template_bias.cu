@@ -16,7 +16,7 @@ extern "C" __global__ void MatrixMulCUDA_8bit_bias(float *input0, float *input1,
     COMMENT_TAG
     */
     const int M = GLOBAL_M_VALUE;
-    const int K = GLOBAL_k_VALUE;
+    const int K = GLOBAL_K_VALUE;
     const int N = GLOBAL_N_VALUE;
 
     int8_t * A = reinterpret_cast<int8_t*>(input0);

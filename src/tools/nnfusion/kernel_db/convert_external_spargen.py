@@ -312,7 +312,8 @@ if __name__ == '__main__':
         os.mkdir(db_path)
     json_file = open(sys.argv[1])
     kernels = json.load(json_file)
-    if len(sys.argv)>1:
+
+    if len(sys.argv)>2:
         platform = sys.argv[2]
     else:
         platform = "CUDA_GPU"
