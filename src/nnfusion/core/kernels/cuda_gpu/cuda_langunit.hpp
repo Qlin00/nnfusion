@@ -15,6 +15,7 @@ namespace nnfusion
             LU_DECLARE(cudnn);
             LU_DECLARE(cusparse);
             LU_DECLARE(sputnik);
+            LU_DECLARE(hipsparse);
             LU_DECLARE(superscaler);
             LU_DECLARE(cupti);
             LU_DECLARE(cuda_prof_api);
