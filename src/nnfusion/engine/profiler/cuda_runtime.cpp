@@ -30,6 +30,7 @@ bool CudaDefaultRuntime::codegen(const ProfilingContext::Pointer& ke)
     bool require_cudnn_handle = false;
     bool require_cublas_handle = false;
     bool require_cusparse_handle = false;
+    bool require_hipsparse_handle = false;
     if (auto kernel = std::dynamic_pointer_cast<CudaLibEmitter>(ke->kernel))
     {
         if (kernel->require_cudnn_handle())
@@ -46,6 +47,11 @@ bool CudaDefaultRuntime::codegen(const ProfilingContext::Pointer& ke)
         {   
             async_info.execution_stream->add_binding_symbol("cuspare_handle");
             require_cusparse_handle = true;
+        }
+        if (kernel->require_hipsparse_handle())
+        {
+            async_info.execution_stream->add_binding_symbol("hipsparse_handle");
+            require_hipsparse_handle = true;
         }
     }
 
@@ -88,7 +94,11 @@ bool CudaDefaultRuntime::codegen(const ProfilingContext::Pointer& ke)
         }
         if (kernel->require_cusparse_handle())
         {
-            writer << "cusparseHandle_t cusparse_handle_0&&&&&;\n";
+            writer << "cusparseHandle_t cusparse_handle_0;\n";
+        }
+        if (kernel->require_hipsparse_handle())
+        {
+            writer << "hipsparseHandle_t hipsparse_handle_0;\n";
         }
     }
     // special for dropout
@@ -227,6 +237,10 @@ bool CudaDefaultRuntime::codegen(const ProfilingContext::Pointer& ke)
         if (require_cusparse_handle)
         {
             writer << "CUSPARSE_SAFE_CALL(cusparseCreate(&cusparse_handle_0));\n";
+        }
+        if (require_hipsparse_handle)
+        {
+            writer << "hipsparseCreate(&hipsparse_handle_0));\n";
         }
         for (auto prefix : dropout_prefix)
         {
@@ -433,6 +447,10 @@ bool CudaDefaultRuntime::codegen(const ProfilingContext::Pointer& ke)
         if (require_cusparse_handle)
         {
             writer << "CUSPARSE_SAFE_CALL(cusparseDestroy(cusparse_handle_0));\n";
+        }
+        if (require_hipsparse_handle)
+        {
+            writer << "hipsparseDestroy(hipsparse_handle_0);\n";
         }
         writer << "return milliseconds/" << ke->runtime_times << ";\n";
     }

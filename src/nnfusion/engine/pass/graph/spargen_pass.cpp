@@ -90,9 +90,8 @@ public:
                 this->scale_shift[tesa_id] = scale_shift_f;
                 this->bias_data_path[tesa_id] = bias_f;
             }
-            else if (sparse_type == "Sputnik"){
-
-            }
+            else if (sparse_type == "Sputnik"){}
+            else if (sparse_type == "HipSparse"){}
             else
             {
                 throw std::invalid_argument("Not supported Sparse Type");
