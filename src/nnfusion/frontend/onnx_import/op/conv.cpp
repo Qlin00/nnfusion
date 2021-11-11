@@ -188,7 +188,7 @@ namespace nnfusion
                         else
                         {
                             NNFUSION_CHECK(n_data_channels % groups == 0 &&
-                                           n_filters_channels & groups == 0);
+                                           n_filters_channels % groups == 0);
                             std::size_t data_group_size{n_data_channels / groups};
                             std::size_t filters_group_size{n_filters_channels / groups};
 
