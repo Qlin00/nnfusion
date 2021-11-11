@@ -13,7 +13,7 @@ LU_DEFINE(header::cublas, "#include <cublas_v2.h>\n");
 LU_DEFINE(header::cudnn, "#include <cudnn.h>\n");
 LU_DEFINE(header::cusparse, "#include <cusparse.h>\n");
 LU_DEFINE(header::sputnik, "#include \"sputnik/cuda_utils.h\"\n#include \"sputnik/matrix_utils.h\"\n#include \"sputnik/spmm/cuda_spmm.h\"\n");
-LU_DEFINE(header::hipsparse, "#include <hip/hip_runtime.h>\n#include <hipsparse.h>");
+LU_DEFINE(header::hipsparse, "#include <hip/hip_runtime.h>\n#include <hipsparse.h>\n");
 LU_DEFINE(header::superscaler, "#include \"superscaler.h\"\n");
 LU_DEFINE(header::cupti, "#include <cupti.h>\n");
 LU_DEFINE(header::cuda_prof_api, "#include <cuda_profiler_api.h>\n");
