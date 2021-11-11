@@ -46,6 +46,7 @@
 #include "op/gemm.hpp"
 #include "op/identity.hpp"
 #include "op/index_reduce.hpp"
+#include "op/instance_norm.hpp"
 #include "op/layer_norm.hpp"
 #include "op/leaky_relu.hpp"
 #include "op/log_softmax.hpp"
@@ -190,6 +191,7 @@ namespace nnfusion
                 REGISTER_OPERATOR("Greater", 1, TranslateBinaryOp<op::Greater>);
                 //REGISTER_OPERATOR("HardSigmoid", 1, hard_sigmoid);
                 REGISTER_OPERATOR("Identity", 1, TranslateIdentityOp);
+                REGISTER_OPERATOR("InstanceNormalization", 6, TranslateInstanceNormOp);
                 REGISTER_OPERATOR("LayerNormalization", 1, TranslateLayerNormalizationOp);
                 REGISTER_OPERATOR("LayerNormalizationGrad", 1, TranslateLayerNormalizationGradOp);
                 REGISTER_OPERATOR("LeakyRelu", 1, TranslateLeakyReluOp);
