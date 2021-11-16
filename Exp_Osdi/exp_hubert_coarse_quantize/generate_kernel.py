@@ -61,8 +61,12 @@ with open('nnfusion_cfg/config', 'r') as f:
         tesa_id = int(line[0])
         kernel_id = line[2]
         torch_name = id2name[tesa_id][0]
+        print(torch_name)
+        if 'conv' in torch_name:
+            continue
         in_shape = shape_info[torch_name]['in_shape'][0]
         weight_shape = shape_info[torch_name]['weight_shape'][0]
+        out_shape = shape_info[torch_name]['out_shape'][0]
         kv = {}
         m = np.prod(in_shape[:-1])
         k = in_shape[-1]
@@ -86,16 +90,17 @@ with open('nnfusion_cfg/config', 'r') as f:
         # import pdb; pdb.set_trace()
         template['code'] = new_code + tesa_id * ' '
         template['kernel_identifier'] = kernel_id
-        template['op_type'] = 'BlockQuantizeDotAdd'
+        template['op_type'] = 'QuantizeDotAdd'
         block_size_m = 16 * kv['BLOCK_ROW_WARPS_VALUE'] * kv["WARP_ROW_TILES_VALUE"]
         block_size_n = 16 * kv["BLOCK_COL_WARPS_VALUE"] * kv["WARP_COL_TILES_VALUE"]
         block_size_k = 16 * kv["CHUNK_K_VALUE"]
+        
         Block_num = math.ceil((m * n) / (block_size_m * block_size_n))
         warp_size =32
         Thread_per_block = (warp_size * kv["BLOCK_ROW_WARPS_VALUE"] * kv["BLOCK_COL_WARPS_VALUE"])
         template['gridDim'] = [Block_num,1,1]
         template['blockDim'] = [Thread_per_block,1,1]
- 
+        template['parameters']['out_shape'] = out_shape
 
         f_path =  os.path.join(prefix, f"{tesa_id}.json")
         print(f_path)

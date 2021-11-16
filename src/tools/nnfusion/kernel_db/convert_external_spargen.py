@@ -150,10 +150,11 @@ def gen_config(op_type, kernel, shared_memory, num_sync):
             if input_key in kernel["parameters"]:
                 config["in_shape"].append(kernel["parameters"][input_key])
         config["out_shape"] = [kernel["parameters"]["out_shape"]]
-
-        in_paranames = ','.join(['float* __restrict__ input%d'%i for i in range(len(config["in_shape"]))])
+        # import pdb; pdb.set_trace()
+        # in_paranames = ','.join(['float* __restrict__ input%d'%i for i in range(len(config["in_shape"]))])
+        input_paras = ['float* __restrict__ input%d'%i for i in range(len(param_list[op_type]['symbol'])-1)]
         config[
-            "function_signature"] = "extern \"C\" __global__  void (%s, float* __restrict__ output0)" % in_paranames
+            "function_signature"] = "extern \"C\" __global__  void (%s, float* __restrict__ output0)" % ','.join(input_paras)
     elif (op_type == 'SparseDot'):
         config["in_shape"] = []
         for i in range(100):
@@ -348,10 +349,10 @@ if __name__ == '__main__':
 
         default_tags = ""
         default_tags += "KernelEmitter,CudaEmitter"
-        if (op_type == "Dot" or  "QuantizeDot" in op_type):
-            # Todo: move the transpose information into identifier
-            default_tags += kernel["parameters"]["transpose_A"] * \
-                ",transA" + kernel["parameters"]["transpose_B"]*",transB"
+        # if (op_type == "Dot" or  "QuantizeDot" in op_type):
+        #     # Todo: move the transpose information into identifier
+        #     default_tags += kernel["parameters"]["transpose_A"] * \
+        #         ",transA" + kernel["parameters"]["transpose_B"]*",transB"
 
         # apply rules that every 32 threads will be formed as a warp
         resource = math.ceil(
