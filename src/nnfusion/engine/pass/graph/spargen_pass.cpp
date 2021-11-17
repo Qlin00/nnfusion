@@ -1399,6 +1399,7 @@ private:
 
         // we filled the ramdom data temporarily
         // float* quan_weight_data = (float*)malloc(sizeof(float) * weight_count);
+        size_t row_count, col_count, value_count, bias_count;
         float* block_weight_rows = (float*)malloc(sizeof(float) * (w_shape[0] + 1));
         memset(block_weight_rows, 0, sizeof(float) * (w_shape[0] + 1));
         float* block_weight_cols = (float*)malloc(sizeof(float) * weight_count);
@@ -1410,11 +1411,11 @@ private:
         float* scale_shift_data = (float*)malloc(sizeof(float));
         memset(scale_shift_data, 0, sizeof(float));
 
-        load_from_file(
+        row_count = load_from_file(
             (char*)block_weight_rows, sizeof(float) * (w_shape[0] + 1), this->csr_rows[tesaid]);
-        load_from_file(
+        col_count = load_from_file(
             (char*)block_weight_cols, sizeof(float) * weight_count, this->csr_cols[tesaid]);
-        load_from_file(
+        value_count = load_from_file(
             (char*)block_weight_values, sizeof(float) * weight_count, this->csr_values[tesaid]);
         load_from_file((char*)scale_integer_data, sizeof(float), this->scale_integer[tesaid]);
         load_from_file((char*)scale_shift_data, sizeof(float), this->scale_shift[tesaid]);
@@ -1425,11 +1426,11 @@ private:
         memset(bias_data, 0, sizeof(float) * weight_count);
         auto dense_op = std::dynamic_pointer_cast<op::Dot>(dot_node->get_op_ptr());
         auto weight_values_node =
-            create_constant_node(n_device_type, ori_device_id, w_shape, block_weight_values);
+            create_constant_node(n_device_type, ori_device_id, vector<size_t>({value_count/sizeof(float)}), block_weight_values);
         auto weight_row_node = create_constant_node(
             n_device_type, ori_device_id, vector<size_t>({w_shape[0] + 1}), block_weight_rows);
         auto weight_col_node =
-            create_constant_node(n_device_type, ori_device_id, w_shape, block_weight_cols);
+            create_constant_node(n_device_type, ori_device_id, vector<size_t>({col_count/sizeof(int)}), block_weight_cols);
         auto scale_integer_node =
             create_constant_node(n_device_type, ori_device_id, *((int*)scale_integer_data));
         auto scale_shift_node =
@@ -1451,17 +1452,19 @@ private:
 
         // Handle the fuse option here
         if (has_bias)
-        {
+        {   
+            bias_count = w_shape[0] * sizeof(float);
+            if (this->bias_data_path[tesaid].size() > 0)
+            {
+                bias_count = load_from_file(
+                    (char*)bias_data, sizeof(float) * weight_count, this->bias_data_path[tesaid]);
+            }
             auto bias_shape = nnfusion::Shape(vector<size_t>(
-                {weight_count})); // TODO currently the memory space for bias is wasted
+                {bias_count/sizeof(float)})); // TODO currently the memory space for bias is wasted
             // TODO also load the correct bias weights
             auto bias = std::make_shared<op::Constant>(
                 from<float>(), bias_shape, static_cast<void*>(bias_data));
-            if (this->bias_data_path[tesaid].size() > 0)
-            {
-                load_from_file(
-                    (char*)bias_data, sizeof(float) * weight_count, this->bias_data_path[tesaid]);
-            }
+            
             auto bias_node = std::make_shared<GNode>(bias, GNodeVector({}));
             bias->revalidate_and_infer_types(bias_node->shared_from_this());
             bias_node->Set<NNFusion_DeviceType>("DeviceType", move(n_device_type));
