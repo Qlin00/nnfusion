@@ -54,7 +54,6 @@ bool CudaDefaultRuntime::codegen(const ProfilingContext::Pointer& ke)
             require_hipsparse_handle = true;
         }
     }
-    std::cout << " HIPSPARSE_FLAG" << require_hipsparse_handle << std::endl;;
     FunctionUnit_p fu = ke->kernel->get_or_emit_source();
     LanguageUnit writer(fu->name_unit->get_code() + ".cu");
     writer << boilerplate::MIT1->get_code();
