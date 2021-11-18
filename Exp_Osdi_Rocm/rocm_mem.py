@@ -9,4 +9,6 @@ device = int(sys.argv[1])
 
 while True:
     sleep(1.0 * time_interval/1000)
-    os.system(f"rocm-smi --showmemuse | grep \"GPU\[{device}\]\" ")
+    # for i in range(1000):
+    #    pass
+    os.system(f"rocm-smi --showmeminfo vram | grep \"GPU\[{device}\]\" | grep Used")
