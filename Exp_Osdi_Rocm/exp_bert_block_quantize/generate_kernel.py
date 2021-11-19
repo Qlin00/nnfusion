@@ -32,7 +32,10 @@ for tesaid in tesa:
     launch_cfg[tesaid] = deepcopy(default_kv)
     if str(tesaid) in tune_kernel_cfg:
         launch_cfg[tesaid].update(tune_kernel_cfg[str(tesaid)])
-
+    if default_kv["BLOCK_SIZE_N_VALUE"] > tesa[tesaid]['weight'].size(0):
+        launch_cfg[tesaid]['BLOCK_SIZE_N_VALUE'] = tesa[tesaid]['weight'].size(0)
+        print(tesaid)
+        print(default_kv["BLOCK_SIZE_N_VALUE"], "  ---> ",  launch_cfg[tesaid]['BLOCK_SIZE_N_VALUE'] )
 
 sparse_block = {}
 for key in launch_cfg:

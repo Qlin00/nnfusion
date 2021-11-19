@@ -95,7 +95,7 @@ extern "C" __global__ void MatrixMulCUDA_8bit_bias(float *input0, float *input1,
     for(int i = 0; i < THREAD_SIZE_M; i++){
         for(int j = 0; j < THREAD_SIZE_N; j++){
             D[(by * BLOCK_SIZE_M + ty * THREAD_SIZE_M + i) * N + bx * BLOCK_SIZE_N + tx * THREAD_SIZE_N + j] =
-            (int8_t)(((accum[i][j] + C[(by * BLOCK_SIZE_M + ty * THREAD_SIZE_M + i) * N + bx * BLOCK_SIZE_N + tx * THREAD_SIZE_N + j]) * Integer) >> Shift_val);
+            (int8_t)(((accum[i][j] + C[bx * BLOCK_SIZE_N + tx * THREAD_SIZE_N + j]) * Integer) >> Shift_val);
         }
     }
   }

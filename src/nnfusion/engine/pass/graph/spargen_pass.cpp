@@ -1073,21 +1073,25 @@ private:
         vector<std::shared_ptr<GNode>> need_remove;
         vector<std::shared_ptr<GNode>> input_gv;
         auto activation_node = cur_node->get_in_edge(0)->get_src();
-        auto weight_node = cur_node->get_in_edge(1)->get_src();
+        auto ori_weight_node = cur_node->get_in_edge(1)->get_src();
         auto weight_shape = cur_node->get_input_shape(1);
         auto output_shape = cur_node->get_output_shape(0);
-
+        size_t load_w_count, load_bias_count;
         size_t weight_count = 1, output_count=1;
         for (auto i:weight_shape)
             weight_count *= i;
         for (auto i:output_shape)
             output_count *= i;
-        auto weight_constant = std::dynamic_pointer_cast<nnfusion::op::Constant>(weight_node->get_op_ptr());
-        char * weight_data_ptr = (char*)weight_constant->get_data_ptr();
-        load_from_file(weight_data_ptr, sizeof(float)*weight_count, this->weight_data_path[tesaid]);
-
+        m_graph->remove_node(ori_weight_node);
+        float * weight_data_ptr = (float*) malloc(sizeof(float)*weight_count);
+        memset(weight_data_ptr, 0, sizeof(float)* weight_count);
+        load_w_count = load_from_file((char*)weight_data_ptr, sizeof(float)*weight_count, this->weight_data_path[tesaid]);
+        // auto q_weight_node =
+        //     create_constant_node(dt, ori_device_id, vector<size_t>({1 + load_w_count/sizeof(float)}), weight_data_ptr);
+        auto q_weight_node =
+                    create_constant_node(dt, ori_device_id, weight_shape, weight_data_ptr);
         input_gv.push_back(activation_node);
-        input_gv.push_back(weight_node);
+        input_gv.push_back(q_weight_node);
         int tmpvalue;
         // These three parameters are abandoned in the current version of kernel
         auto w_mul_zp_node = create_constant_node(dt, ori_device_id, tmpvalue);
@@ -1098,10 +1102,11 @@ private:
         scale_shift_data = (float*) malloc(sizeof(float));
         bias_data = (float*)malloc(sizeof(float)*output_count);
         memset(bias_data, 0, sizeof(float)*output_count);
-    
+        load_bias_count = load_from_file((char*)bias_data, sizeof(float)*output_count, this->bias_data_path[tesaid]);
         auto scale_integer_node = create_constant_node(dt, ori_device_id, *((int*)scale_integer_data));
         auto scale_shift_node = create_constant_node(dt, ori_device_id, *((int*)scale_shift_data));
-        auto bias_node = create_constant_node(dt, ori_device_id, output_shape, bias_data);
+        auto bias_node = create_constant_node(dt, ori_device_id, vector<size_t>({1+load_bias_count/sizeof(float)}), bias_data);
+        // auto bias_node = create_constant_node(dt, ori_device_id, output_shape, bias_data);
     
         input_gv.push_back(w_mul_zp_node);
         input_gv.push_back(w_zp_node);
@@ -1109,7 +1114,7 @@ private:
         input_gv.push_back(scale_integer_node);
         input_gv.push_back(scale_shift_node);
         input_gv.push_back(bias_node);
-        for (int i=2;i<input_gv.size();i++)
+        for (int i=1;i<input_gv.size();i++)
             m_graph->add_node(input_gv[i]);
         auto conv1x1 = std::make_shared<op::QuantizeConv1x1>(quan_bit);
         auto conv1x1_node = std::make_shared<GNode>(conv1x1, input_gv);
