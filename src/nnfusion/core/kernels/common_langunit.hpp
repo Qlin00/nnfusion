@@ -34,9 +34,11 @@ namespace nnfusion
             LU_DECLARE(cstring);
             LU_DECLARE(stdlib);
             LU_DECLARE(chrono);
+            LU_DECLARE(ctime);
             LU_DECLARE(limits);
             LU_DECLARE(iostream);
             LU_DECLARE(windows);
+            LU_DECLARE(unordered_map);
         }
 
         namespace macro

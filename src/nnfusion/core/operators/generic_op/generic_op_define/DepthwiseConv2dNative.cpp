@@ -10,13 +10,6 @@ REGISTER_OP(DepthwiseConv2dNative)
     .attr<nnfusion::op::OpConfig::any>("dilations")
     .attr<nnfusion::op::OpConfig::any>("padding_before")
     .attr<nnfusion::op::OpConfig::any>("padding_after")
-    .constrait([](const nnfusion::op::OpConfig::any& config) -> bool {
-        if (config["padding_type"] != "SAME")
-        {
-            return false;
-        }
-        return true;
-    })
     .infershape([](std::shared_ptr<graph::GNode> gnode) -> void {
         NNFUSION_CHECK(gnode->get_input_size() == 2);
         auto op = std::dynamic_pointer_cast<nnfusion::op::GenericOp>(gnode->get_op_ptr());
@@ -43,11 +36,19 @@ REGISTER_OP(DepthwiseConv2dNative)
         auto padding_after = op->localOpConfig.getRoot()["padding_after"];
         const int64_t padding_h = padding_before[0];
         const int64_t padding_w = padding_before[1];
+        const int64_t dilation_h = op->localOpConfig.getRoot()["dilations"][0];
+        const int64_t dilation_w = op->localOpConfig.getRoot()["dilations"][1];
 
         std::vector<int64_t> strides = op->localOpConfig.getRoot()["strides"];
         NNFUSION_CHECK(strides.size() == 2);
-        const int64_t out_rows = (input_rows + 2 * padding_h - filter_rows) / strides[0] + 1;
-        const int64_t out_cols = (input_cols + 2 * padding_w - filter_cols) / strides[1] + 1;
+        const int64_t out_rows =
+            (int64_t)((float)(input_rows + 2 * padding_h - dilation_h * (filter_rows - 1) - 1) /
+                          (float)strides[0] +
+                      1);
+        const int64_t out_cols =
+            (int64_t)((float)(input_cols + 2 * padding_w - dilation_w * (filter_cols - 1) - 1) /
+                          (float)strides[1] +
+                      1);
 
         Shape output_shape(
             is_nhwc
@@ -94,15 +95,15 @@ REGISTER_OP(DepthwiseConv2dNative)
         const auto& stride_w = int64_t(_op->localOpConfig.getRoot()["strides"][1]);
         const auto& padding_h = int64_t(_op->localOpConfig.getRoot()["padding_before"][0]);
         const auto& padding_w = int64_t(_op->localOpConfig.getRoot()["padding_before"][1]);
-        const auto& kernel_size_h = curr->get_input_shape(1)[2];
-        const auto& kernel_size_w = curr->get_input_shape(1)[3];
+        const auto& kernel_size_h = curr->get_input_shape(1)[0];
+        const auto& kernel_size_w = curr->get_input_shape(1)[1];
         const auto& in_shape = curr->get_input_shape(0);
         const auto& out_shape = curr->get_output_shape(0);
         const std::string data_format = is_nhwc ? "nhwc" : "nchw";
         NNFUSION_CHECK(dilation_h == 1) << "Not support other dilation yet.";
         NNFUSION_CHECK(dilation_w == 1) << "Not support other dilation yet.";
         nnfusion::op::OpConfig::any config;
-        config["input1_layout"] = "[C, 0, KH, KW]";
+        config["input1_layout"] = "[KH, KW, C, 0]";
         config["output0_layout"] = is_nhwc ? "[N, HO, WO, C]" : "[N, C, HO, WO]";
         config["height"] = is_nhwc ? out_shape[1] : out_shape[2];
         config["width"] = is_nhwc ? out_shape[2] : out_shape[3];

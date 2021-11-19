@@ -36,30 +36,44 @@ namespace nnfusion
         {
             namespace
             {
+                static ConvertFunc EMPTY_CONVERT_FUNC = nullptr;
+
+                bool is_sorted(const std::vector<onnx::NodeProto>& unsorted_nodes,
+                               const std::unordered_set<std::string>& external_values)
+                {
+                    std::unordered_set<std::string> ready_values = external_values;
+                    for (auto node : unsorted_nodes)
+                    {
+                        for (auto value : node.input())
+                        {
+                            if (ready_values.find(value) == ready_values.end())
+                            {
+                                return false;
+                            }
+                        }
+                        for (auto value : node.output())
+                        {
+                            ready_values.insert(value);
+                        }
+                    }
+                    return true;
+                }
+
                 std::vector<onnx::NodeProto>
                     tp_sort(const std::vector<onnx::NodeProto>& unsorted_nodes,
                             const std::unordered_set<std::string>& external_values)
                 {
-                    auto randam_string = [](int length = 8) -> string {
-                        static string charset =
-                            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-                        string result;
-                        result.resize(length);
-                        // srand(time(NULL));
-                        for (int i = 0; i < length; i++)
-                            result[i] = charset[rand() % charset.length()];
-                        return result;
-                    };
-
-                    std::unordered_map<std::string, std::unordered_set<std::string>>
-                        value2uses;                                // value name: used nodes
-                    std::unordered_map<std::string, int> indegree; // node name:dedup indegree
+                    std::unordered_map<std::string, std::set<std::string>>
+                        value2uses;                      // value name: used nodes
+                    std::map<std::string, int> indegree; // node name: dedup indegree
                     std::unordered_map<std::string, onnx::NodeProto> name2node;
                     std::vector<onnx::NodeProto> sorted_nodes;
+                    size_t empty_name_index = 0;
                     for (auto n : unsorted_nodes)
                     {
-                        string node_name =
-                            (n.has_name() && n.name() != "") ? n.name() : randam_string();
+                        string node_name = (n.has_name() && n.name() != "")
+                                               ? n.name()
+                                               : "nnf_name_" + std::to_string(empty_name_index++);
                         NNFUSION_CHECK(name2node.find(node_name) == name2node.end())
                             << "duplicate node name: " << node_name;
                         name2node[node_name] = n;
@@ -90,19 +104,19 @@ namespace nnfusion
                     }
 
                     std::queue<std::string> q;
-                    std::unordered_set<std::string> added_nodes;
-                    for (auto n : indegree)
+                    for (auto it = indegree.begin(); it != indegree.end();)
                     {
-                        if (n.second == 0)
+                        if (it->second == 0)
                         {
-                            q.push(n.first);
-                            added_nodes.insert(n.first);
+                            q.push(it->first);
+                            it = indegree.erase(it);
+                        }
+                        else
+                        {
+                            ++it;
                         }
                     }
-                    for (auto node : added_nodes)
-                    {
-                        indegree.erase(node);
-                    }
+
                     while (!q.empty())
                     {
                         auto name = q.front();
@@ -138,7 +152,7 @@ namespace nnfusion
                     return sorted_nodes;
                 }
 
-                int print_model_proto(const onnx::ModelProto& model_proto)
+                void print_model_proto(const onnx::ModelProto& model_proto)
                 {
                     onnx::ModelProto proto_without_init;
                     proto_without_init.CopyFrom(model_proto);
@@ -221,7 +235,7 @@ namespace nnfusion
                 , m_dim_params(dim_params)
                 , model_dir(model_dir)
             {
-                print_model_proto(model_proto);
+                // print_model_proto(model_proto);
 
                 // Note: onnx connect nodes by tensor's name instead of op name
                 /*
@@ -310,6 +324,7 @@ namespace nnfusion
                         id.domain(),
                         OperatorsBridge::get_convert_func_map(
                             id.version(), (id.domain() == "ai.onnx" ? "" : id.domain())));
+                    domain2version[id.domain()] = id.version();
                 }
                 // onnx.proto(.3): the empty string ("") for domain or absence of opset_import field
                 // implies the operator set that is defined as part of the ONNX specification.
@@ -318,12 +333,18 @@ namespace nnfusion
                 {
                     m_domain_convert_func_map.emplace(
                         "", OperatorsBridge::get_convert_func_map(ONNX_OPSET_VERSION, ""));
+                    domain2version[""] = ONNX_OPSET_VERSION;
                 }
 
                 m_graph = std::make_shared<nnfusion::graph::Graph>();
 
                 NNFUSION_CHECK(onnx_graph_proto->sparse_initializer_size() == 0)
                     << "sparse_initializer not supported";
+
+                for (const auto& output : onnx_graph_proto->output())
+                {
+                    m_output_names.insert(output.name());
+                }
 
                 for (auto tensor : onnx_graph_proto->initializer())
                 {
@@ -379,6 +400,12 @@ namespace nnfusion
                             cast_op->set_name(input_proto.name());
                             auto input_gnode = m_graph->add_node_and_edge(cast_op, it->second);
                             m_node_map[input_proto.name()] = {GNodeIndex{input_gnode}};
+                            if (m_output_names.find(input_gnode->get_name()) !=
+                                m_output_names.end())
+                            {
+                                // TODO: should specify which output of current gnode
+                                m_graph_outputs.emplace_back(input_gnode);
+                            }
                         }
                     }
                     else
@@ -388,52 +415,52 @@ namespace nnfusion
                         input_op->set_name(input_proto.name());
                         input_gnode = m_graph->add_node_and_edge(input_op, graph::GNodeVector({}));
                         m_node_map[input_proto.name()] = {GNodeIndex{input_gnode}};
+                        if (m_output_names.find(input_gnode->get_name()) != m_output_names.end())
+                        {
+                            // TODO: should specify which output of current gnode
+                            m_graph_outputs.emplace_back(input_gnode);
+                        }
                     }
-                }
-
-                for (const auto& output : onnx_graph_proto->output())
-                {
-                    m_output_names.insert(output.name());
                 }
 
                 // Verify that ONNX graph contains only nodes of available operator types
-                {
-                    std::unordered_map<std::string, int64> domain2version;
-                    for (const auto& id : onnx_model_proto->opset_import())
-                    {
-                        if (id.domain() == "com.microsoft.nnfusion.custom")
-                        {
-                            continue;
-                        }
-                        domain2version[id.domain() == "ai.onnx" ? "" : id.domain()] = id.version();
-                    }
-                    std::unordered_set<std::string> unknown_ops;
-                    for (const auto& node_proto : onnx_graph_proto->node())
-                    {
-                        if (!is_operator_available(node_proto))
-                        {
-                            std::string op =
-                                ((node_proto.domain() == "ai.onnx") ? ""
-                                                                    : node_proto.domain() + ".") +
-                                node_proto.op_type() + ":" +
-                                std::to_string(domain2version.at(node_proto.domain()));
-                            unknown_ops.insert(op);
-                        }
-                    }
-                    if (unknown_ops.size() > 0)
-                    {
-                        for (auto op : unknown_ops)
-                        {
-                            NNFUSION_LOG(ERROR) << "Unsupported op: " << op;
-                        }
-                        NNFUSION_CHECK_FAIL() << "Unsupported op count: " << unknown_ops.size();
-                    }
-                }
+                // {
+                //     std::unordered_map<std::string, int64> domain2version;
+                //     for (const auto& id : onnx_model_proto->opset_import())
+                //     {
+                //         if (id.domain() == "com.microsoft.nnfusion.custom")
+                //         {
+                //             continue;
+                //         }
+                //         domain2version[id.domain() == "ai.onnx" ? "" : id.domain()] = id.version();
+                //     }
+                //     std::unordered_set<std::string> unknown_ops;
+                //     for (const auto& node_proto : onnx_graph_proto->node())
+                //     {
+                //         if (!is_operator_available(node_proto))
+                //         {
+                //             std::string op =
+                //                 ((node_proto.domain() == "ai.onnx") ? ""
+                //                                                     : node_proto.domain() + ".") +
+                //                 node_proto.op_type() + ":" +
+                //                 std::to_string(domain2version.at(node_proto.domain()));
+                //             unknown_ops.insert(op);
+                //         }
+                //     }
+                //     if (unknown_ops.size() > 0)
+                //     {
+                //         for (auto op : unknown_ops)
+                //         {
+                //             NNFUSION_LOG(ERROR) << "Unsupported op: " << op;
+                //         }
+                //         NNFUSION_CHECK_FAIL() << "Unsupported op count: " << unknown_ops.size();
+                //     }
+                // }
 
                 // Process ONNX graph nodes, convert to nGraph nodes
                 // sorted to avoid non-stardard model
-                std::vector<onnx::NodeProto> unsorted_nodes(std::begin(onnx_graph_proto->node()),
-                                                            std::end(onnx_graph_proto->node()));
+                std::vector<onnx::NodeProto> onnx_nodes(std::begin(onnx_graph_proto->node()),
+                                                        std::end(onnx_graph_proto->node()));
                 std::unordered_set<std::string> external_values{
                     ""}; // values provided by initializers/params, empty string means option input
                 std::transform(std::begin(onnx_graph_proto->initializer()),
@@ -444,12 +471,13 @@ namespace nnfusion
                                std::end(onnx_graph_proto->input()),
                                std::inserter(external_values, external_values.begin()),
                                [](onnx::ValueInfoProto v) -> std::string { return v.name(); });
-                std::vector<onnx::NodeProto> sorted_nodes =
-                    tp_sort(unsorted_nodes, external_values);
+                if (!is_sorted(onnx_nodes, external_values))
+                {
+                    NNFUSION_LOG(NNFUSION_WARNING) << "Resorting ONNX nodes...";
+                    onnx_nodes = tp_sort(onnx_nodes, external_values);
+                }
 
-                graph::GNodeIndexVector optimizer_outputs;
-
-                for (const auto& node_proto : sorted_nodes)
+                for (const auto& node_proto : onnx_nodes)
                 {
                     auto results = convert_node(node_proto);
                     for (auto& named_gnode : results)
@@ -464,24 +492,21 @@ namespace nnfusion
                             m_graph_outputs.emplace_back(named_gnode.gnode_index.gnode);
                         }
                     }
+                }
 
-                    if (node_proto.op_type() == "AdamOptimizer")
-                    {
-                        optimizer_outputs.emplace_back(results[0].gnode_index);
-                    }
-                }
-                // XX, we hardcode optimizer in output, because onnx training model only output loss
-                if (optimizer_outputs.size() > 1)
+                // Sort nGraph output nodes in the order of ONNX output nodes
+                std::vector<std::string> output_names;
+                for (const auto& output : onnx_graph_proto->output())
                 {
-                    nnfusion::op::OpConfig::any myConfig;
-                    myConfig["index"] = 0;
-                    auto generic_op = std::make_shared<nnfusion::op::GenericOp>(
-                        "sink_node", "SelectNode", myConfig);
-                    auto generic_gnode = m_graph->add_node_and_edge(generic_op, optimizer_outputs);
-                    m_node_map["sink_node"] = {GNodeIndex{generic_gnode}};
-                    m_output_names.insert("sink_node");
-                    m_graph_outputs.emplace_back(generic_gnode);
+                    output_names.push_back(output.name());
                 }
+                sort(m_graph_outputs.begin(),
+                     m_graph_outputs.end(),
+                     [&output_names](const std::shared_ptr<nnfusion::graph::GNode>& a,
+                                     const std::shared_ptr<nnfusion::graph::GNode>& b) {
+                         return std::find(output_names.begin(), output_names.end(), a->get_name()) <
+                                std::find(output_names.begin(), output_names.end(), b->get_name());
+                     });
 
                 m_graph->set_default_parameters();
                 m_graph->set_outputs(m_graph_outputs);
@@ -492,8 +517,22 @@ namespace nnfusion
             NamedNodeVector GraphConvert::convert_node(const onnx::NodeProto& node_proto)
             {
                 NNFUSION_LOG(INFO) << "convert node: " << node_proto.name();
-                NamedNodeVector ret = get_convert_func(node_proto.op_type(), node_proto.domain())(
-                    node_proto, m_node_map, m_graph);
+                const auto& convert_func =
+                    get_convert_func(node_proto.op_type(), node_proto.domain());
+                NamedNodeVector ret;
+                if (convert_func)
+                {
+                    ret = convert_func(node_proto, m_node_map, m_graph);
+                }
+                else
+                {
+                    NNFUSION_LOG(NNFUSION_WARNING)
+                        << "No translator for "
+                        << (node_proto.domain().empty() ? "" : node_proto.domain() + ".")
+                        << node_proto.op_type() << ", try to convert to generic op";
+                    ret = TranslateCustomOp(
+                        node_proto, m_node_map, m_graph, domain2version.at(node_proto.domain()));
+                }
                 for (int i = 0; i < ret.size(); i++)
                 {
                     NNFUSION_LOG(INFO) << "node " << node_proto.name() << ", output " << ret[i].name
@@ -505,27 +544,15 @@ namespace nnfusion
             const ConvertFunc& GraphConvert::get_convert_func(const std::string& name,
                                                               const std::string& domain) const
             {
-                if (domain == "com.microsoft.nnfusion.custom")
-                {
-                    return custom_translator;
-                }
-                const auto dm = m_domain_convert_func_map.find(domain);
-                NNFUSION_CHECK(dm != std::end(m_domain_convert_func_map)) << "Unknown Domain: "
-                                                                          << domain;
-
-                const auto op = dm->second.find(name);
-                NNFUSION_CHECK(op != std::end(dm->second))
-                    << "Unknown ConvertFunc: " << (domain.empty() ? "" : domain + ".") << name;
-
-                return op->second;
+                if (m_domain_convert_func_map.find(domain) == m_domain_convert_func_map.end() ||
+                    m_domain_convert_func_map.at(domain).find(name) ==
+                        m_domain_convert_func_map.at(domain).end())
+                    return EMPTY_CONVERT_FUNC;
+                return m_domain_convert_func_map.at(domain).at(name);
             }
 
             bool GraphConvert::is_operator_available(const onnx::NodeProto& node_proto) const
             {
-                if (node_proto.domain() == "com.microsoft.nnfusion.custom")
-                {
-                    return true;
-                }
                 const auto dm = m_domain_convert_func_map.find(node_proto.domain());
 
                 if (dm == std::end(m_domain_convert_func_map))

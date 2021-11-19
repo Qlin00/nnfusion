@@ -26,7 +26,7 @@
 #include <vector>
 
 #include "half/include/half.hpp"
-#include "nnfusion/common/serialize/pbtypes.pb.h"
+#include "nnfusion/common/serialize/nnf_pbtypes.pb.h"
 #include "nnfusion/common/type/bfloat16.hpp"
 #include "nnfusion/util/errors.hpp"
 
@@ -85,6 +85,8 @@ namespace nnfusion
                                                         nnfusion::serialize::PBType& dtype);
             static bool nnfusion_element_type_to_dtype_string(const Type& ng_et,
                                                               std::string& dtype);
+            static bool dtype_string_to_nnfusion_element_type(const std::string& dtype,
+                                                              Type& ng_et);
 
             /// Returns true if the type is floating point, else false.
             bool get_is_real() const { return m_is_real; }

@@ -52,6 +52,7 @@ bool TensorLivenessAnalysis::run(std::shared_ptr<InterpreterContext> ctx,
                 {
                     auto tensor = outputs[i];
                     tensor->set_parameter();
+                    tensor->set_persistent();
                     set_tensor_group(tensor, to_string(stream_id));
                 }
             }
@@ -240,16 +241,14 @@ bool TensorLivenessAnalysis::run(std::shared_ptr<InterpreterContext> ctx,
 void TensorLivenessAnalysis::set_tensor_group(shared_ptr<descriptor::Tensor> tensor,
                                               const std::string& group)
 {
+    if (tensor->is_persistent())
+    {
+        tensor->set_group("persist");
+    }
+
     if (tensor->get_group() == "")
     {
-        if (tensor->is_persistent())
-        {
-            tensor->set_group("persist");
-        }
-        else
-        {
-            tensor->set_group(group);
-        }
+        tensor->set_group(group);
     }
     else if (tensor->get_group() != group)
     {

@@ -12,6 +12,7 @@ using namespace nnfusion::codegen;
 DECLARE_bool(fkernels_as_files);
 DECLARE_int64(fkernels_files_number);
 DECLARE_bool(fcustomized_mem_imp);
+DECLARE_string(fantares_perf_file);
 
 bool BaseCodegenPass::run(std::shared_ptr<InterpreterContext> ctx,
                           std::shared_ptr<TranslationUnit> tu)
@@ -199,6 +200,8 @@ bool BaseCodegenPass::after_projgen()
     struct stat s;
     std::string constant_folder = get_current_dir_name() + std::string("/Constant");
     std::string para_info_json = get_current_dir_name() + std::string("/para_info.json");
+    std::string antares_perf_path =
+        get_current_dir_name() + std::string("/") + FLAGS_fantares_perf_file;
     if (stat(constant_folder.c_str(), &s) == 0)
     {
         std::string nnfusion_rt_const_folder = m_codegen_folder + std::string("Constant");
@@ -223,6 +226,14 @@ bool BaseCodegenPass::after_projgen()
         if (0 != system(cmd.c_str()))
         {
             throw nnfusion::errors::RuntimeError("Failed to move para_info.json.\n");
+        }
+    }
+    if (stat(antares_perf_path.c_str(), &s) == 0)
+    {
+        std::string cmd = std::string("mv ") + antares_perf_path + " " + m_codegen_folder;
+        if (0 != system(cmd.c_str()))
+        {
+            throw nnfusion::errors::RuntimeError("Failed to move antares perf file.\n");
         }
     }
 
@@ -302,4 +313,15 @@ nnfusion::LanguageUnit_p BaseCodegenPass::codegen_mem_ref(KernelEmitter::Pointer
     if (empty)
         return nullptr;
     return _lu;
+}
+
+LanguageUnit_p BaseCodegenPass::codegen_device_type()
+{
+    auto lu_devtype = make_shared<LanguageUnit>("device_type");
+    *lu_devtype
+        << "// 0: CUDA_GPU; 1: ROCM_GPU; 2: GENERIC_CPU; 3: HLSL; 4: GraphCore; 5: UNKNOWN\n";
+    *lu_devtype << "int get_device_type()\n{\n";
+    *lu_devtype << "    return " << device_type() << ";\n";
+    *lu_devtype << "}\n";
+    return lu_devtype;
 }

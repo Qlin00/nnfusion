@@ -18,6 +18,7 @@ namespace nnfusion
         namespace macro
         {
             LU_DECLARE(OutputDebugStringA);
+            LU_DECLARE(RUNTIME_API);
 
         } // namespace macro
 
@@ -25,6 +26,7 @@ namespace nnfusion
         {
             LU_DECLARE(antares_hlsl_dll_cs);
             LU_DECLARE(antares_hlsl_dll_cpp);
+            LU_DECLARE(dxModuleLaunchAsync);
 
         } // namespace declaration
     }     // namespace kernels

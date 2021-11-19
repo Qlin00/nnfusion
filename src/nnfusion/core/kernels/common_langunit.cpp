@@ -20,9 +20,11 @@ LU_DEFINE(header::vector, "#include <vector>\n");
 LU_DEFINE(header::cstring, "#include <cstring>\n");
 LU_DEFINE(header::stdlib, "#include <stdlib.h>\n");
 LU_DEFINE(header::chrono, "#include <chrono>\n");
+LU_DEFINE(header::ctime, "#include <ctime>\n");
 LU_DEFINE(header::limits, "#include <limits>\n");
 LU_DEFINE(header::iostream, "#include <iostream>\n");
 LU_DEFINE(header::windows, "#include <windows.h>\n");
+LU_DEFINE(header::unordered_map, "#include <unordered_map>\n");
 
 // Macro
 LU_DEFINE(macro::NNFUSION_DEBUG, "#define NNFUSION_DEBUG\n");

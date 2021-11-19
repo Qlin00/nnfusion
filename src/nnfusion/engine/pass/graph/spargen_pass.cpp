@@ -2005,7 +2005,7 @@ private:
     vector<std::shared_ptr<GNode>> find_successors(std::shared_ptr<GNode> gnode)
     {
         vector<std::shared_ptr<GNode>> successors;
-        const std::set<std::shared_ptr<nnfusion::graph::Edge>>& out_edges = gnode->get_out_edges();
+        const std::vector<std::shared_ptr<nnfusion::graph::Edge>>& out_edges = gnode->get_out_edges();
         for (auto edge : out_edges)
         {
             successors.push_back(edge->get_dst());
@@ -2015,7 +2015,7 @@ private:
     vector<std::shared_ptr<GNode>> find_predecessors(std::shared_ptr<GNode> gnode)
     {
         vector<std::shared_ptr<GNode>> predecessors;
-        const std::set<std::shared_ptr<nnfusion::graph::Edge>>& in_edges = gnode->get_in_edges();
+        const std::vector<std::shared_ptr<nnfusion::graph::Edge>>& in_edges = gnode->get_in_edges();
         for (auto edge : in_edges)
         {
             predecessors.push_back(edge->get_src());

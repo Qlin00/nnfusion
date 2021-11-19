@@ -132,16 +132,41 @@ namespace nnfusion
 
                     std::string conv_data_format = assign_data_format(data_shape);
 
+                    if (padding_above != padding_below)
+                    {
+                        int rank = data_shape.size();
+                        Shape padding_above_temp(rank, 0);
+                        Shape padding_below_temp(rank, 0);
+                        Shape padding_interior_temp(rank, 0);
+                        for (int i = 0; i < rank - 2; i++)
+                        {
+                            padding_above_temp[i + 2] = padding_above[i];
+                            padding_below_temp[i + 2] = padding_below[i];
+                            padding_above[i] = 0;
+                            padding_below[i] = 0;
+                        }
+
+                        auto pad_val_op =
+                            std::make_shared<op::Constant>(data.get_element_type(),
+                                                           nnfusion::Shape{},
+                                                           std::vector<std::string>{"0"});
+                        auto pad_val_gnode =
+                            m_graph->add_node_and_edge(pad_val_op, GNodeIndexVector{});
+
+                        auto pad_op = std::make_shared<op::Pad>(
+                            padding_below_temp, padding_above_temp, padding_interior_temp);
+
+                        auto pad_gnode =
+                            m_graph->add_node_and_edge(pad_op, {data, GNodeIndex(pad_val_gnode)});
+                        data = GNodeIndex(pad_gnode, 0);
+                    }
+
                     std::shared_ptr<nnfusion::graph::GNode> conv_node = nullptr;
                     if (groups == 1)
                     {
                         auto conv_op = std::make_shared<op::Convolution>(
                             strides, dilations, padding_below, padding_above, conv_data_format);
                         conv_node = m_graph->add_node_and_edge(conv_op, {data, filters});
-                        int tesa_id = node.get_attribute_value<int64_t>("tesa_id", -1);
-                        // std::cout<<"SparGen: get tesa id "<<tesa_id<<std::endl;
-                        conv_node->Set<int>("TESAID", std::move(tesa_id));
-                        // std::cout<<"SparGen "<<(*conv_node)["TESAID"].as<int>()<<std::endl;
                     }
                     else
                     {
@@ -154,41 +179,51 @@ namespace nnfusion
                             NNFUSION_CHECK(n_filters_channels == groups)
                                 << "Currently only support depth_multiplier = 1 in DepthwiseConv2d";
 
-                            // auto reshape_filter_gnode = Reshape<2, 3, 0, 1>(filters);
-                            // m_graph->add_node(reshape_filter_gnode);
-                            // m_graph->add_edge(filters, 0, reshape_filter_gnode, 0);
                             auto filter_gnode = GetInputNode(all_ng_nodes, node_proto, 1);
-
-                            nnfusion::AxisVector ng_axis_order(filters_shape.size());
-                            std::iota(ng_axis_order.begin(), ng_axis_order.end(), 0);
                             auto reshape_filter_op = std::make_shared<nnfusion::op::Reshape>(
-                                ng_axis_order,
-                                nnfusion::Shape({filters_shape[2], filters_shape[3], filters_shape[0], filters_shape[1]}));
-                            reshape_filter_op->set_name(filter_gnode->get_name() + "_filters_reshape");
-                            auto reshape_filter_gnode = m_graph->add_node_and_edge(reshape_filter_op, {filter_gnode});
+                                nnfusion::AxisVector{2, 3, 0, 1},
+                                nnfusion::Shape({filters_shape[2],
+                                                 filters_shape[3],
+                                                 filters_shape[0],
+                                                 filters_shape[1]}));
+                            reshape_filter_op->set_name(filter_gnode->get_name() +
+                                                        "_filters_reshape");
+                            auto reshape_filter_gnode =
+                                m_graph->add_node_and_edge(reshape_filter_op, {filter_gnode});
 
                             size_t depth_multiplier = 1;
                             nnfusion::op::OpConfig::any myConfig;
                             myConfig["data_format"] = "NCHW";
-                            myConfig["padding_type"] = "SAME"; // TODO: check this config
                             myConfig["strides"] = strides;
                             myConfig["dilations"] = dilations;
                             myConfig["padding_before"] = padding_below;
                             myConfig["padding_after"] = padding_above;
 
+                            if ((2 * padding_below[0] - dilations[0] * (filters_shape[2] - 1) ==
+                                 0) &&
+                                (2 * padding_below[1] - dilations[1] * (filters_shape[3] - 1) == 0))
+                            {
+                                myConfig["padding_type"] = "SAME";
+                            }
+                            else if (padding_below[0] == 0 && padding_below[1] == 0)
+                            {
+                                myConfig["padding_type"] = "VALID";
+                            }
+                            else
+                            {
+                                NNFUSION_CHECK_FAIL() << "Currently only support SAME and VALID "
+                                                         "padding in DepthwiseConv2dNative";
+                            }
+
                             auto conv_op = std::make_shared<nnfusion::op::GenericOp>(
                                 node_proto.name(), "DepthwiseConv2dNative", myConfig);
-                            conv_node =
-                                m_graph->add_node_and_edge(conv_op, {data, GNodeIndex{reshape_filter_gnode, 0}});
-                            int tesa_id = node.get_attribute_value<int64_t>("tesa_id", -1);
-                            // std::cout<<"SparGen: get tesa id "<<tesa_id<<std::endl;
-                            conv_node->Set<int>("TESAID", std::move(tesa_id));
-                            // conv_node = m_graph->add_node_and_edge(conv_op, {data, filters});
+                            conv_node = m_graph->add_node_and_edge(
+                                conv_op, {data, GNodeIndex{reshape_filter_gnode, 0}});
                         }
                         else
                         {
                             NNFUSION_CHECK(n_data_channels % groups == 0 &&
-                                           n_filters_channels % groups == 0);
+                                           n_filters_channels & groups == 0);
                             std::size_t data_group_size{n_data_channels / groups};
                             std::size_t filters_group_size{n_filters_channels / groups};
 

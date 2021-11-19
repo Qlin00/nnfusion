@@ -8,9 +8,16 @@ import os
 import sys
 import time
 import onnx
+try:
+    from yaml import safe_load as load_func
+except ImportError:
+    from json import loads as load_func
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--file', type=str, default='./frozen_graph.onnx', help='The file name of the frozen graph.')
+parser.add_argument('--optimized_model_filepath', type=str, default='', help='The file name of the optimized frozen graph.')
+parser.add_argument('--graph_optimization_level', type=str, default='ORT_ENABLE_ALL', help='ONNX Runtime graph optimization level.')
+parser.add_argument('--symbolic_dims', type=load_func, default={}, help='The size of symbolic dimensions, provided by \'{"dim1_name": dim1, "dim2_name": dim2}\'')
 parser.add_argument('--warmup', type=int, default=5, help='The number of warmup iterations.')
 parser.add_argument('--iters', type=int, default=100, help='The number of execution iterations.')
 parser.add_argument('--provider', type=str, default='', help='The backend provider.')
@@ -34,6 +41,10 @@ def get_numpy(tensor):
             return np.float32
         elif 'double' in onnx_dtype:
             return np.float64
+        elif 'uint8' in onnx_dtype:
+            return np.uint8
+        elif 'uint16' in onnx_dtype:
+            return np.uint16
         elif 'int8' in onnx_dtype:
             return np.int8
         elif 'int16' in onnx_dtype:
@@ -42,10 +53,6 @@ def get_numpy(tensor):
             return np.int32
         elif 'int64' in onnx_dtype:
             return np.int64
-        elif 'uint8' in onnx_dtype:
-            return np.uint8
-        elif 'uint16' in onnx_dtype:
-            return np.uint16
         elif 'bool' in onnx_dtype:
             return np.bool_
         else:
@@ -60,8 +67,21 @@ def get_numpy(tensor):
 
 print("Importing ONNX model into ONNX Runtime...")
 ort.set_default_logger_severity(args.logger_severity)
+
 sess_options = ort.SessionOptions()
 sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+if args.graph_optimization_level == 'ORT_DISABLE_ALL':
+    sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_DISABLE_ALL
+elif args.graph_optimization_level == 'ORT_ENABLE_BASIC':
+    sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_BASIC
+elif args.graph_optimization_level == 'ORT_ENABLE_EXTENDED':
+    sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
+if args.optimized_model_filepath != '':
+    sess_options.optimized_model_filepath = args.optimized_model_filepath
+
+for k, v in args.symbolic_dims.items():
+    sess_options.add_free_dimension_override_by_name(k, int(v))
+
 ort_session = ort.InferenceSession(args.file, sess_options)
 
 if args.provider != '':
@@ -90,9 +110,10 @@ for warmup in range(args.warmup):
             # max_len = min(10, len(out_flat) - print_offset)
             # print(out_flat[print_offset:max_len + print_offset], "offset=", print_offset)
 
-print('>> Evalutating Benchmark ...')
-t_start = time.time()
-for step in range(args.iters):
-    ort_session.run(outputs_name, ort_inputs)
-t_end = time.time()
-print('>> Average time for each run: %.4f ms;' % ((t_end - t_start) * 1e3 / args.iters))
+if args.iters > 0:
+    print('>> Evalutating Benchmark ...')
+    t_start = time.time()
+    for step in range(args.iters):
+        ort_session.run(outputs_name, ort_inputs)
+    t_end = time.time()
+    print('>> Average time for each run: %.4f ms;' % ((t_end - t_start) * 1e3 / args.iters))

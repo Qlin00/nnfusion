@@ -12,7 +12,7 @@ namespace nnfusion
 	    std::vector<std::shared_ptr<GNode>> find_successors(std::shared_ptr<GNode> gnode)
         {
 		std::vector<std::shared_ptr<GNode>> successors;
-            const std::set<std::shared_ptr<nnfusion::graph::Edge>>& out_edges =
+            const std::vector<std::shared_ptr<nnfusion::graph::Edge>>& out_edges =
                 gnode->get_out_edges();
             for (auto edge : out_edges)
             {
@@ -23,7 +23,7 @@ namespace nnfusion
 	    std::vector<std::shared_ptr<GNode>> find_predecessors(std::shared_ptr<GNode> gnode)
         {
 		std::vector<std::shared_ptr<GNode>> predecessors;
-            const std::set<std::shared_ptr<nnfusion::graph::Edge>>& in_edges =
+            const std::vector<std::shared_ptr<nnfusion::graph::Edge>>& in_edges =
                 gnode->get_in_edges();
             for (auto edge : in_edges)
             {
