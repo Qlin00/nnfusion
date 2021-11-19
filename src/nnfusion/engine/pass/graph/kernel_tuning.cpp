@@ -342,7 +342,7 @@ bool KernelTuning::run_on_graph(std::shared_ptr<nnfusion::graph::Graph>& graph)
     dump_perf(FLAGS_fantares_perf_file, tuned_kernels, ir2cnt);
     if (FLAGS_fdefault_device == "CUDA")
     {
-        insert_to_kernel_cache(nodes);
+        // insert_to_kernel_cache(nodes);
     }
 
     return true;

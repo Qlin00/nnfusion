@@ -16,7 +16,8 @@ import sqlite3
 import os
 import math
 
-from cuparse import parse as code_parse
+from cuparse import parse as cu_code_parse
+from ccparse import parse as cc_code_parse
 from profile import prepare_file, log_sync, profile, prod
 
 db_path = os.environ['HOME'] + "/.cache/nnfusion/"
@@ -321,6 +322,13 @@ if __name__ == '__main__':
     # input json file could contain one or more kernels
     if "op_type" in kernels:
         kernels = [kernels]
+
+    code_parse = cu_code_parse
+    if platform == "CPU":
+        code_parse = cc_code_parse
+        print('Using cpu code parse')
+        import pdb; pdb.set_trace()
+
     for kernel in kernels:
         op_type = kernel["op_type"]
 

@@ -29,7 +29,7 @@
 #include "nnfusion/engine/pass/tensor/liveness_analysis.hpp"
 #include "nnfusion/engine/pass/tensor/tensor_device_dispatcher.hpp"
 #include "nnfusion/engine/pass/tensor/tensor_memory_layout.hpp"
-
+#include "nnfusion/engine/pass/graph/spargen_pass.hpp"
 #include "nnfusion/engine/pass/codegen/cpu_codegen_pass.hpp"
 
 using namespace nnfusion;
@@ -55,6 +55,7 @@ CpuEngine::CpuEngine()
 
     // Kernel selection
     g_passes->push_back(make_shared<DefaultGNodeDeviceDispatcher>());
+    g_passes->push_back(make_shared<SparGenPass>());
     g_passes->push_back(make_shared<KernelTuning>());
     g_passes->push_back(make_shared<ProfilingBasedKernelSelector>());
     g_passes->push_back(make_shared<FetchBasedSelector>());
