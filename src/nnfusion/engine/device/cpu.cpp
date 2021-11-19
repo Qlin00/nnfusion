@@ -51,12 +51,17 @@ CpuEngine::CpuEngine()
     g_passes->push_back(make_shared<AssignLayoutPass>());
     g_passes->push_back(make_shared<OpInplacePass>());
 
-    g_passes->push_back(make_shared<IRBasedFusionPass>());
-    g_passes->push_back(make_shared<PatternSubstitutionPass>());
+
 
     // Kernel selection
     g_passes->push_back(make_shared<DefaultGNodeDeviceDispatcher>());
     g_passes->push_back(make_shared<SparGenPass>());
+
+    g_passes->push_back(make_shared<IRBasedFusionPass>());
+    g_passes->push_back(make_shared<PatternSubstitutionPass>());
+
+
+
     g_passes->push_back(make_shared<KernelTuning>());
     g_passes->push_back(make_shared<ProfilingBasedKernelSelector>());
     g_passes->push_back(make_shared<FetchBasedSelector>());
