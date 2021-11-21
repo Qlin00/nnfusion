@@ -58,6 +58,8 @@ CpuEngine::CpuEngine()
     g_passes->push_back(make_shared<SparGenPass>());
 
     g_passes->push_back(make_shared<IRBasedFusionPass>());
+    g_passes->push_back(make_shared<DefaultGNodeDeviceDispatcher>());
+
     g_passes->push_back(make_shared<PatternSubstitutionPass>());
 
 

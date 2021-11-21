@@ -2066,6 +2066,7 @@ private:
 bool SparGenPass::run_on_graph(std::shared_ptr<Graph>& graph)
 {
     bool enable_spargen = FLAGS_fspargen_cfg.size() > 0;
+    std::cout << "In Spargen Pass " << std::endl;
     if (!enable_spargen)
         return true;
     NNFUSION_LOG(INFO) << "Enable the Spargen Passes";
