@@ -164,6 +164,8 @@ public:
         if (sparse_type == "Quantize")
         {
             ConvQuantizeOptimize(conv_node, kernel_entry, fusible_nodes, n_device_type);
+        }else if(sparse_type == "ConvertDot"){
+            
         }
         else
         {
