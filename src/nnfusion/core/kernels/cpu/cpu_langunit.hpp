@@ -16,6 +16,8 @@ namespace nnfusion
             LU_DECLARE(eigen_spatial_convolution);
             LU_DECLARE(cblas);
             LU_DECLARE(mlas);
+            LU_DECLARE(dnnl);
+
             LU_DECLARE(threadpool);
             LU_DECLARE(barrier);
             LU_DECLARE(simd);
