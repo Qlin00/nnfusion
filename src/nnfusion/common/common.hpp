@@ -51,6 +51,7 @@
 #include "nnfusion/core/operators/op_define/cosh.hpp"
 #include "nnfusion/core/operators/op_define/divide.hpp"
 #include "nnfusion/core/operators/op_define/dot.hpp"
+#include "nnfusion/core/operators/op_define/mydot.hpp"
 #include "nnfusion/core/operators/op_define/equal.hpp"
 #include "nnfusion/core/operators/op_define/erf.hpp"
 #include "nnfusion/core/operators/op_define/exp.hpp"

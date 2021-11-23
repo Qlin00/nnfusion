@@ -92,6 +92,7 @@ public:
             }
             else if (sparse_type == "Sputnik"){}
             else if (sparse_type == "HipSparse"){}
+            else if (sparse_type == "ConvertDot"){}
             else
             {
                 throw std::invalid_argument("Not supported Sparse Type");
@@ -135,7 +136,7 @@ public:
 
     void optimize_kernel(std::shared_ptr<GNode> target_node)
     {
-        NNFUSION_LOG(INFO) << "Optimize the Node " << target_node->get_name() << " by SparGen  Op_type:" << target_node->get_op_type();
+        NNFUSION_LOG(INFO) << "Optimize the Node " << target_node->get_name() << " by SparGen Op_type:" << target_node->get_op_type();
         if (target_node->get_op_type() == "Dot")
         {
             DotOptimize(target_node);
@@ -159,13 +160,13 @@ public:
         std::string identifier = this->kernel_id[tesa_id];
         auto n_device_type = (*conv_node)["DeviceType"].as<NNFusion_DeviceType>();
         auto kernel_entry = fetch_kernel(this->cache_manager, identifier, n_device_type);
-        if (kernel_entry == nullptr)
+        if (kernel_entry == nullptr && sparse_type != "ConvertDot")
             return;
         if (sparse_type == "Quantize")
         {
             ConvQuantizeOptimize(conv_node, kernel_entry, fusible_nodes, n_device_type);
         }else if(sparse_type == "ConvertDot"){
-            
+            ConvTransformationOptimize(conv_node, fusible_nodes, n_device_type);
         }
         else
         {
@@ -173,6 +174,18 @@ public:
         }
         
     }
+    void ConvTransformationOptimize(std::shared_ptr<GNode> conv_node, vector<std::shared_ptr<GNode>> fusible_nodes, NNFusion_DeviceType n_device_type){
+        std::cout << "In ConvTransformationOptimize" << std::endl;
+        int kernel_h = conv_node->get_input_shape(1)[2];
+        int kernel_w = conv_node->get_input_shape(1)[3];
+        if (kernel_h == 1 && kernel_w == 1)
+        {
+            // Conv1x1 can be transformed in to a Dot Operation
+            // Optimize for Conv1x1
+            Conv1x1TransformDot(conv_node, fusible_nodes, n_device_type);
+        }
+    }
+
     void DepthConvOptimize(std::shared_ptr<GNode> conv_node)
     {
         std::cout << "In DepthWise ConvOptimize" << std::endl;
@@ -243,6 +256,50 @@ public:
     }
 
 private:
+
+    void Conv1x1ReformatWeight(float * ori_weight, float* new_weight, vector<size_t> weight_shape){
+        // TODO finishe this function in the future
+    }
+    void Conv1x1TransformDot(std::shared_ptr<GNode> cur_node,
+                                vector<std::shared_ptr<GNode>> fused_ops,
+                                NNFusion_DeviceType dt)
+    {
+        std::cout << "In Conv1x1 Transformation Optimization" << std::endl;
+        int ori_device_id = (*cur_node)["DeviceID"];
+        int tesaid = (*cur_node)["TESAID"].as<int>();
+        int quan_bit = this->out_quan_bit[tesaid];
+
+        auto activation_node = cur_node->get_in_edge(0)->get_src();
+        auto ori_weight_node = cur_node->get_in_edge(1)->get_src();
+        auto in_shape = cur_node->get_input_shape(0);
+        auto weight_shape = cur_node->get_input_shape(1);
+        auto output_shape = cur_node->get_output_shape(0);
+        int M = in_shape[0] * in_shape[2] * in_shape[3];
+        int K = weight_shape[1];
+        int N = weight_shape[0];
+        size_t load_w_count, load_bias_count;
+        size_t weight_count = 1, output_count=1;
+        for (auto i:weight_shape)
+            weight_count *= i;
+        for (auto i:output_shape)
+            output_count *= i;
+        // m_graph->remove_node(ori_weight_node);'
+        auto dot = std::make_shared<op::MyDot> (1, false);
+        vector<std::shared_ptr<GNode>> input_gv({activation_node, ori_weight_node});
+        auto dot_node = std::make_shared<GNode>(dot, input_gv);
+        dot_node->Set<NNFusion_DeviceType>("DeviceType", move(dt));
+        dot_node->Set<int>("DeviceID", move(ori_device_id));
+        for(int i=0;i<input_gv.size();i++){
+            m_graph->add_edge(input_gv.at(i), 0, dot_node, i);
+        }
+        auto ori_outputs = cur_node->get_outputs();
+        for (int i = 0; i < ori_outputs.size(); i++)
+        {
+            dot_node->set_output(i, ori_outputs[i]);
+        }
+        m_graph->replace_node(cur_node, dot_node, false);
+
+    }
 
     std::shared_ptr<vector<int>> SortedRowSwizzle(vector<int> csr_row_index) {
         // Create our unsorted row indices.

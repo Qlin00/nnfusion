@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-#include "dot.hpp"
+#include "mydot.hpp"
 
 using namespace nnfusion;
 using namespace nnfusion::kernels;
 
-cpu::DotMkl::DotMkl(shared_ptr<KernelContext> ctx)
+cpu::MyDotMkl::MyDotMkl(shared_ptr<KernelContext> ctx)
     : MklKernelEmitter(ctx)
 {
-    auto dot_op = static_pointer_cast<nnfusion::op::Dot>(ctx->gnode->get_op_ptr());
+    auto dot_op = static_pointer_cast<nnfusion::op::MyDot>(ctx->gnode->get_op_ptr());
 
     reduction_axes = dot_op->get_reduction_axes_count();
     arg0_shape = nnfusion::Shape(ctx->inputs[0]->get_shape());
@@ -24,7 +24,7 @@ cpu::DotMkl::DotMkl(shared_ptr<KernelContext> ctx)
     custom_tag = tag.str();
 }
 
-LanguageUnit_p cpu::DotMkl::emit_function_body()
+LanguageUnit_p cpu::MyDotMkl::emit_function_body()
 {
     LanguageUnit_p _lu(new LanguageUnit(get_function_name()));
     auto& lu = *_lu;
@@ -43,6 +43,23 @@ LanguageUnit_p cpu::DotMkl::emit_function_body()
            << "input1, " << max(1UL, arg1_shape[1]) << ", 0.0f, "
            << "output0, " << max(1UL, arg1_shape[1]) << ");\n";
     }
+    else if ((arg0_shape.size() == 4) && (arg1_shape.size() == 4) && reduction_axes == 1)
+    {
+        unsigned long m,n,k;
+        m = arg0_shape[0] * arg0_shape[2] *arg0_shape[3];
+        k = arg1_shape[1];
+        n = arg1_shape[0]; 
+        lu << "cblas_sgemm("
+           << "CblasRowMajor, "
+           << "CblasNoTrans, "
+           << "CblasNoTrans, " << m << ", " << n << ", " << k
+           << ",\n"
+           << "        1.0f, "
+           << "input0, " << max(1UL, k) << ", "
+           << "input1, " << max(1UL, n) << ", 0.0f, "
+           << "output0, " << max(1UL, n) << ");\n";
+    }
+
     else if ((arg0_shape.size() == 3) && (arg1_shape.size() == 2) && reduction_axes == 1)
     {
         auto& mat_a = m_context->inputs[0];
@@ -163,7 +180,7 @@ LanguageUnit_p cpu::DotMkl::emit_function_body()
     return _lu;
 }
 
-LanguageUnit_p cpu::DotMkl::emit_dependency()
+LanguageUnit_p cpu::MyDotMkl::emit_dependency()
 {
     LanguageUnit_p _lu(new LanguageUnit(get_function_name() + "_dep"));
     _lu->require(header::cblas);
@@ -176,7 +193,8 @@ LanguageUnit_p cpu::DotMkl::emit_dependency()
     return _lu;
 }
 
+
 REGISTER_KERNEL_EMITTER(
-    "Dot",                                                                   // op_name
+    "MyDot",                                                                   // op_name
     Device(GENERIC_CPU).TypeConstraint(element::f32).Tag("mkl").Priority(7), // attrs
-    cpu::DotMkl)
+    cpu::MyDotMkl)

@@ -3,12 +3,14 @@ import time
 import numpy as np
 import onnxruntime as ort
 import onnx 
+from timeit import default_timer as timer
 def measure_time(model, dummy_input, runtimes=200):
     times = []
     for runtime in range(runtimes):
-        start = time.time()
+        # start = time.time()
+        start = timer()
         re = model.infer(dummy_input)
-        end = time.time()
+        end = timer()
         times.append(end-start)
     _drop = int(runtimes * 0.1)
     mean = np.mean(times[_drop:-1*_drop])
@@ -45,6 +47,5 @@ for name in net.input_info:
 print(measure_time(exec_net_onnx, dummy_input))
 # import pdb; pdb.set_trace()
 
-ort_sess = ort.InferenceSession('model.onnx')
-print(measure_time_ort(ort_sess, dummy_input))
-import pdb; pdb.set_trace()
+#ort_sess = ort.InferenceSession('model.onnx')
+#print(measure_time_ort(ort_sess, dummy_input))

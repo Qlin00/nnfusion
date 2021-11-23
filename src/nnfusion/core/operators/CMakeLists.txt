@@ -35,6 +35,7 @@ set(SRC
     op_define/cosh.cpp
     op_define/divide.cpp
     op_define/dot.cpp
+    op_define/mydot.cpp
     op_define/equal.cpp
     op_define/erf.cpp
     op_define/exp.cpp
