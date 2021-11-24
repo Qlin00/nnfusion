@@ -152,7 +152,7 @@ void BLOCK_SPARSE_MATMUL(float* input0, float* input1,float* input2, float* inpu
     int * row_ptr = reinterpret_cast<int*>(input2);
     int * col_idx = reinterpret_cast<int*>(input3);
     float * bias = reinterpret_cast<float*>(input4);
-    float *a_buffer_whole = reinterpret_cast<float*>(input5);
+    float *a_buffer_whole = reinterpret_cast<float*>(input5);   // new add
     float * C = reinterpret_cast<float*>(output0);
 
     constexpr int M_BLOCKING = BLOCK_SIZE_M_VALUE;
