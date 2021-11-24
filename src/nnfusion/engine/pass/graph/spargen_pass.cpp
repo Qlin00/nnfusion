@@ -18,6 +18,7 @@
 #include "nnfusion/core/operators/util/elementwise_arithmetic.hpp"
 
 DEFINE_string(fspargen_cfg, "", "Configuration to enable the SparGen optimization");
+DEFINE_string(fcpu_conv_fuse, "", "Configuration to enable the SparGen optimization");
 using namespace nnfusion::graph;
 using namespace nnfusion::pass::graph;
 using namespace nnfusion::kernels;
@@ -28,13 +29,13 @@ using namespace std;
 class SparGenOptimizer
 {
 public:
-    SparGenOptimizer(std::shared_ptr<Graph> g, const std::string& cfg_path)
+    SparGenOptimizer(std::shared_ptr<Graph> g, const std::string& cfg_path, const std::string& flag_conv_fuse)
     {
         this->m_graph = g;
         this->cfg_path = cfg_path;
-        parse_cfg();
         this->cache_manager = std::make_shared<nnfusion::cache::KernelCacheManager>();
         this->sparse_threshold = 1e-9;
+        this->flag_conv_fuse = flag_conv_fuse;
     }
     void parse_cfg()
     {
@@ -129,6 +130,23 @@ public:
                 optimize_kernel(node);
             }
         }
+        if(flag_conv_fuse.size()>0){
+            for(auto node : gnodes){
+                if (!(*node)["DeviceType"].is_valid())
+                {
+                    NNFUSION_CHECK_FAIL()
+                        << "GNode DeviceType should be assigned before this pass：" << node->get_name();
+                }
+                auto n_device_type = (*node)["DeviceType"].as<NNFusion_DeviceType>();
+                NNFUSION_CHECK(n_device_type != UNKNOWN);
+                if( node->get_op_type() == "Convolution" ){
+                    ConvFuseOptimize(node);
+                }
+                else if(node->get_op_type() == "DepthwiseConv2dNative"){
+                    DepthConvFuseOptimize(node);
+                }
+            }
+        }
         // std::cout<<"Exit the SparGen optimize flow"<<std::endl;
         // exit(-1);
         return true;
@@ -185,6 +203,8 @@ public:
             Conv1x1TransformDot(conv_node, fusible_nodes, n_device_type);
         }
     }
+
+
 
     void DepthConvOptimize(std::shared_ptr<GNode> conv_node)
     {
@@ -740,6 +760,105 @@ private:
         pgraph->replace_node(dst_node, sparse_node, false);
         pgraph->remove_node(src_node);
     }
+
+    void ConvFuseOptimize(std::shared_ptr<GNode> cur_node){
+        vector<std::shared_ptr<GNode>> fused_ops ;
+        int ori_device_id = (*cur_node)["DeviceID"];
+        NNFusion_DeviceType dt = (*cur_node)["DeviceType"].as<NNFusion_DeviceType>(); 
+        fused_ops = get_conv_fusible_nodes(cur_node);
+        auto activation_node = cur_node->get_in_edge(0)->get_src();
+        auto ori_weight_node = cur_node->get_in_edge(1)->get_src();
+        auto input_shape = cur_node->get_input_shape(0);
+        auto weight_shape = cur_node->get_input_shape(1);
+        auto output_shape = cur_node->get_output_shape(0);
+        // NCHW
+        float * bias_data = (float*) malloc(sizeof(float)*output_shape[1]);
+        memset(bias_data, 0, sizeof(float)*output_shape[1]);
+        // TODO need construct the bias data and weight in the future
+        auto bias_shape = vector<size_t>({output_shape[1]});
+        auto bias_node = create_constant_node(dt, ori_device_id, bias_shape, bias_data);
+        m_graph->add_node(bias_node);
+        GNodeVector input_gv;
+        input_gv.push_back(activation_node);
+        input_gv.push_back(ori_weight_node);
+        input_gv.push_back(bias_node);
+        auto ori_conv = std::dynamic_pointer_cast<op::Convolution>(cur_node->get_op_ptr());
+        auto fused_conv = std::make_shared<op::FuseConvolution>(ori_conv->get_window_movement_strides(),
+                                                                ori_conv->get_window_dilation_strides(),
+                                                                ori_conv->get_padding_below(),
+                                                                ori_conv->get_padding_above(),
+                                                                ori_conv->get_data_dilation_strides(),
+                                                                ori_conv->get_data_format());
+        auto fused_conv_node = std::make_shared<GNode>(fused_conv, input_gv);                                                  
+        for(int i=0;i<input_gv.size();i++){
+            m_graph->add_edge(input_gv.at(i), 0, fused_conv_node, i);
+        }
+        auto last_node = cur_node;
+        if(fused_ops.size())
+            last_node = fused_ops[fused_ops.size()-1];
+        auto ori_outputs = last_node->get_outputs();
+        //???
+        for (int i = 0; i < ori_outputs.size(); i++)
+        {
+            fused_conv_node->set_output(i, ori_outputs[i]);
+        }
+        fused_ops.push_back(cur_node);
+        m_graph->replace_node(last_node, fused_conv_node, false);
+        for(auto tmp_node:fused_ops){
+            if(tmp_node!=last_node){
+                m_graph->remove_node(tmp_node);
+            }
+        }
+    }
+
+
+    void DepthConvFuseOptimize(std::shared_ptr<GNode> cur_node){
+        vector<std::shared_ptr<GNode>> fused_ops ;
+        int ori_device_id = (*cur_node)["DeviceID"];
+        NNFusion_DeviceType dt = (*cur_node)["DeviceType"].as<NNFusion_DeviceType>(); 
+        fused_ops = get_depth_conv_fusible_nodes(cur_node);
+        auto activation_node = cur_node->get_in_edge(0)->get_src();
+        auto ori_weight_node = cur_node->get_in_edge(1)->get_src();
+        auto input_shape = cur_node->get_input_shape(0);
+        auto weight_shape = cur_node->get_input_shape(1);
+        auto output_shape = cur_node->get_output_shape(0);
+        // NCHW
+        float * bias_data = (float*) malloc(sizeof(float)*output_shape[1]);
+        memset(bias_data, 0, sizeof(float)*output_shape[1]);
+        // TODO need construct the bias data and weight in the future
+        auto bias_shape = vector<size_t>({output_shape[1]});
+        auto bias_node = create_constant_node(dt, ori_device_id, bias_shape, bias_data);
+        m_graph->add_node(bias_node);
+        GNodeVector input_gv;
+        input_gv.push_back(activation_node);
+        input_gv.push_back(ori_weight_node);
+        input_gv.push_back(bias_node);
+        auto ori_conv = std::dynamic_pointer_cast<op::GenericOp>(cur_node->get_op_ptr());
+        
+        auto fused_conv = std::make_shared<nnfusion::op::GenericOp>(
+                                cur_node->get_name(), "FuseDepthConvolution", ori_conv->localOpConfig.getRoot());
+        auto fused_conv_node = std::make_shared<GNode>(fused_conv, input_gv);                                                  
+        for(int i=0;i<input_gv.size();i++){
+            m_graph->add_edge(input_gv.at(i), 0, fused_conv_node, i);
+        }
+        auto last_node = cur_node;
+        if(fused_ops.size())
+            last_node = fused_ops[fused_ops.size()-1];
+        auto ori_outputs = last_node->get_outputs();
+        //???
+        for (int i = 0; i < ori_outputs.size(); i++)
+        {
+            fused_conv_node->set_output(i, ori_outputs[i]);
+        }
+        fused_ops.push_back(cur_node);
+        m_graph->replace_node(last_node, fused_conv_node, false);
+        for(auto tmp_node:fused_ops){
+            if(tmp_node!=last_node){
+                m_graph->remove_node(tmp_node);
+            }
+        }
+    }
+
 
     void CusparseDotOptimize(std::shared_ptr<GNode> cur_node)
     {
@@ -2103,6 +2222,7 @@ private:
 
     std::shared_ptr<Graph> m_graph;
     std::string cfg_path;
+    std::string flag_conv_fuse;
     std::shared_ptr<nnfusion::cache::KernelCacheManager> cache_manager;
     std::map<int, std::string> kernel_id;
     std::map<int, std::string> sparse_type;
@@ -2124,11 +2244,12 @@ private:
 
 bool SparGenPass::run_on_graph(std::shared_ptr<Graph>& graph)
 {
-    bool enable_spargen = FLAGS_fspargen_cfg.size() > 0;
+    bool enable_spargen = FLAGS_fspargen_cfg.size() > 0 || FLAGS_fcpu_conv_fuse.size() > 0;
+
     std::cout << "In Spargen Pass " << std::endl;
     if (!enable_spargen)
         return true;
     NNFUSION_LOG(INFO) << "Enable the Spargen Passes";
-    SparGenOptimizer optimizer(graph, FLAGS_fspargen_cfg);
+    SparGenOptimizer optimizer(graph, FLAGS_fspargen_cfg, FLAGS_fcpu_conv_fuse);
     return optimizer.optimize();
 }

@@ -45,6 +45,7 @@ namespace nnfusion
             ///
             /// Output `[N, C_OUT, R1, ... Rf]`
             ///
+
             FuseConvolution(const nnfusion::Strides& window_movement_strides,
                         const nnfusion::Strides& window_dilation_strides,
                         const nnfusion::CoordinateDiff& padding_below,

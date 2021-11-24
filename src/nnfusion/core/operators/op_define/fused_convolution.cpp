@@ -43,52 +43,6 @@ FuseConvolution::FuseConvolution(const nnfusion::Strides& window_movement_stride
 
 void FuseConvolution::validate_and_infer_types(std::shared_ptr<graph::GNode> gnode)
 {
-    const nnfusion::PartialShape& data_batch_shape = gnode->get_input_partial_shape(0);
-    nnfusion::element::Type data_batch_et = gnode->get_input_element_type(0);
-    const nnfusion::PartialShape& filters_shape = gnode->get_input_partial_shape(1);
-    nnfusion::element::Type filters_et = gnode->get_input_element_type(1);
-
-    if (m_data_dilation_strides.size() == 0)
-    {
-        m_data_dilation_strides = default_strides(this, data_batch_shape, filters_shape);
-    }
-
-    if (m_window_movement_strides.size() == 0)
-    {
-        m_window_movement_strides = default_strides(this, data_batch_shape, filters_shape);
-    }
-
-    if (m_window_dilation_strides.size() == 0)
-    {
-        m_window_dilation_strides = default_strides(this, data_batch_shape, filters_shape);
-    }
-
-    if (m_padding_below.size() == 0)
-    {
-        m_padding_below = default_padding(this, data_batch_shape, filters_shape);
-    }
-
-    if (m_padding_above.size() == 0)
-    {
-        m_padding_above = default_padding(this, data_batch_shape, filters_shape);
-    }
-
-    nnfusion::element::Type result_et;
-    nnfusion::PartialShape result_shape;
-
-    std::tie(result_et, result_shape) = infer_convolution_forward(this,
-                                                                  data_batch_et,
-                                                                  filters_et,
-                                                                  data_batch_shape,
-                                                                  m_data_dilation_strides,
-                                                                  m_padding_below,
-                                                                  m_padding_above,
-                                                                  filters_shape,
-                                                                  m_window_movement_strides,
-                                                                  m_window_dilation_strides,
-                                                                  m_data_format);
-
-    gnode->set_output_type_and_shape(0, result_et, result_shape);
 }
 
 nnfusion::Strides FuseConvolution::default_strides(const Op* op,
