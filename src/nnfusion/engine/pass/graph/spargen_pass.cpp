@@ -36,6 +36,7 @@ public:
         this->cache_manager = std::make_shared<nnfusion::cache::KernelCacheManager>();
         this->sparse_threshold = 1e-9;
         this->flag_conv_fuse = flag_conv_fuse;
+        parse_cfg();
     }
     void parse_cfg()
     {
@@ -762,6 +763,7 @@ private:
     }
 
     void ConvFuseOptimize(std::shared_ptr<GNode> cur_node){
+        std::cout<<"In ConvFuseOptimize" << std::endl;
         vector<std::shared_ptr<GNode>> fused_ops ;
         int ori_device_id = (*cur_node)["DeviceID"];
         NNFusion_DeviceType dt = (*cur_node)["DeviceType"].as<NNFusion_DeviceType>(); 
@@ -813,6 +815,7 @@ private:
 
 
     void DepthConvFuseOptimize(std::shared_ptr<GNode> cur_node){
+        std::cout<<" In Depthwise conv fusion"<<std::endl;
         vector<std::shared_ptr<GNode>> fused_ops ;
         int ori_device_id = (*cur_node)["DeviceID"];
         NNFusion_DeviceType dt = (*cur_node)["DeviceType"].as<NNFusion_DeviceType>(); 
