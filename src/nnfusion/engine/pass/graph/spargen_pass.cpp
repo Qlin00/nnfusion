@@ -839,7 +839,7 @@ private:
         auto ori_conv = std::dynamic_pointer_cast<op::GenericOp>(cur_node->get_op_ptr());
         
         auto fused_conv = std::make_shared<nnfusion::op::GenericOp>(
-                                cur_node->get_name(), "FuseDepthConvolution", ori_conv->localOpConfig.getRoot());
+                                cur_node->get_name(), "FuseDepthwiseConv2dNative", ori_conv->localOpConfig.getRoot());
         auto fused_conv_node = std::make_shared<GNode>(fused_conv, input_gv);                                                  
         for(int i=0;i<input_gv.size();i++){
             m_graph->add_edge(input_gv.at(i), 0, fused_conv_node, i);

@@ -48,7 +48,7 @@
 #include "nnfusion/core/operators/op_define/convert.hpp"
 #include "nnfusion/core/operators/op_define/convolution.hpp"
 #include "nnfusion/core/operators/op_define/fused_convolution.hpp"
-#include "nnfusion/core/operators/op_define/fused_depthwise.hpp"
+
 #include "nnfusion/core/operators/op_define/cos.hpp"
 #include "nnfusion/core/operators/op_define/cosh.hpp"
 #include "nnfusion/core/operators/op_define/divide.hpp"

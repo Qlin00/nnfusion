@@ -32,7 +32,7 @@ set(SRC
     op_define/convert.cpp
     op_define/convolution.cpp
     op_define/fused_convolution.cpp
-    op_define/fused_depthwise.cpp
+
     op_define/cos.cpp
     op_define/cosh.cpp
     op_define/divide.cpp

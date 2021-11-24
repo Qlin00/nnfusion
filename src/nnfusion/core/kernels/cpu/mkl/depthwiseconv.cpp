@@ -144,9 +144,9 @@ LanguageUnit_p cpu::DepthConvolutionMkl::emit_function_body()
 
     // Create memory objects for tensor data (src, weights, dst). In this
     // example, NCHW layout is assumed for src and dst, and OIHW for weights.
-    auto user_src_mem = memory({src_dims, dt::f32, tag::nchw}, my_engine, (void*) input0);
-    auto user_weights_mem = memory({weights_dims, dt::f32, tag::goihw}, my_engine, (void*) input1);
-    auto user_dst_mem = memory({dst_dims, dt::f32, tag::nchw}, my_engine, (void*) output0);
+    auto user_src_mem = memory({src_dims, dt::f32, tag::any}, my_engine, (void*) input0);
+    auto user_weights_mem = memory({weights_dims, dt::f32, tag::any}, my_engine, (void*) input1);
+    auto user_dst_mem = memory({dst_dims, dt::f32, tag::any}, my_engine, (void*) output0);
 
     // Create memory descriptors with format_tag::any for the primitive. This
     // enables the convolution primitive to choose memory layouts for an

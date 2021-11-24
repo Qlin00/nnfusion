@@ -148,24 +148,24 @@ LanguageUnit_p cpu::FuseConvolutionMkl::emit_function_body()
         auto conv_dst_md = memory::desc(dst_dims, dt::f32, tag::any);
 
         // Create memory descriptor and memory object for input bias.
-        // auto user_bias_md = memory::desc(bias_dims, dt::f32, tag::a);
-        // auto user_bias_mem = memory(user_bias_md, my_engine, (void*) input2);
+        auto user_bias_md = memory::desc(bias_dims, dt::f32, tag::a);
+        auto user_bias_mem = memory(user_bias_md, my_engine, (void*) input2);
 
 
         // Create operation descriptor.
         auto conv_desc = convolution_forward::desc(prop_kind::forward_inference,
-                algorithm::convolution_auto , conv_src_md, conv_weights_md,
+                algorithm::convolution_auto , conv_src_md, conv_weights_md, user_bias_md,
                 conv_dst_md, strides_dims, padding_dims_l,
                 padding_dims_r);
 
         // // Create primitive post-ops (ReLU).
-        // const float scale = 1.f;
-        // const float alpha = 0.f;
-        // const float beta = 0.f;
-        // post_ops conv_ops;
-        // conv_ops.append_eltwise(scale, algorithm::eltwise_relu, alpha, beta);
-        // primitive_attr conv_attr;
-        // conv_attr.set_post_ops(conv_ops);
+        const float scale = 1.f;
+        const float alpha = 0.f;
+        const float beta = 0.f;
+        post_ops conv_ops;
+        conv_ops.append_eltwise(scale, algorithm::eltwise_relu, alpha, beta);
+        primitive_attr conv_attr;
+        conv_attr.set_post_ops(conv_ops);
 
         // Create primitive descriptor.
         auto conv_pd
@@ -205,7 +205,7 @@ LanguageUnit_p cpu::FuseConvolutionMkl::emit_function_body()
         std::unordered_map<int, memory> conv_args;
         conv_args.insert({DNNL_ARG_SRC, conv_src_mem});
         conv_args.insert({DNNL_ARG_WEIGHTS, conv_weights_mem});
-        // conv_args.insert({DNNL_ARG_BIAS, NULL});
+        conv_args.insert({DNNL_ARG_BIAS, user_bias_mem});
         conv_args.insert({DNNL_ARG_DST, conv_dst_mem});
 
         // Primitive execution: convolution with ReLU.

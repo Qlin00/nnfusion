@@ -135,17 +135,17 @@ LanguageUnit_p cpu::ConvolutionMkl::emit_function_body()
 
         // Create memory objects for tensor data (src, weights, dst). In this
         // example, NCHW layout is assumed for src and dst, and OIHW for weights.
-        auto user_src_mem = memory({src_dims, dt::f32, tag::nchw}, my_engine, (void*) input0);
-        auto user_weights_mem = memory({weights_dims, dt::f32, tag::oihw}, my_engine, (void*) input1);
-        auto user_dst_mem = memory({dst_dims, dt::f32, tag::nchw}, my_engine, (void*) output0);
+        auto user_src_mem = memory({src_dims, dt::f32, tag::aBcd16b}, my_engine, (void*) input0);
+        auto user_weights_mem = memory({weights_dims, dt::f32, tag::ABcd16b16a}, my_engine, (void*) input1);
+        auto user_dst_mem = memory({dst_dims, dt::f32, tag::aBcd16b}, my_engine, (void*) output0);
 
         // Create memory descriptors with format_tag::any for the primitive. This
         // enables the convolution primitive to choose memory layouts for an
         // optimized primitive implementation, and these layouts may differ from the
         // ones provided by the user.
-        auto conv_src_md = memory::desc(src_dims, dt::f32, tag::any);
-        auto conv_weights_md = memory::desc(weights_dims, dt::f32, tag::any);
-        auto conv_dst_md = memory::desc(dst_dims, dt::f32, tag::any);
+        auto conv_src_md = memory::desc(src_dims, dt::f32, tag::aBcd16b);
+        auto conv_weights_md = memory::desc(weights_dims, dt::f32, tag::ABcd16b16a);
+        auto conv_dst_md = memory::desc(dst_dims, dt::f32, tag::aBcd16b);
 
         // Create memory descriptor and memory object for input bias.
         // auto user_bias_md = memory::desc(bias_dims, dt::f32, tag::a);
