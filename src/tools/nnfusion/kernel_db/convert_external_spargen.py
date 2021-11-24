@@ -327,7 +327,7 @@ if __name__ == '__main__':
     if platform == "CPU":
         code_parse = cc_code_parse
         print('Using cpu code parse')
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
 
     for kernel in kernels:
         op_type = kernel["op_type"]
