@@ -1,3 +1,5 @@
+
+
 extern "C" __global__ void MatrixMulCUDA_8bit_bias(float *input0, float *input1, float *input2, float *input3, float *input4, float *input5, float * input6,float  *input7, float *output0) 
 {
 
@@ -19,30 +21,31 @@ extern "C" __global__ void MatrixMulCUDA_8bit_bias(float *input0, float *input1,
   const int M = GLOBAL_M_VALUE;
   const int K = GLOBAL_K_VALUE;
   const int N = GLOBAL_N_VALUE;
-  
+  /*
+    dim3 dimBlock(BLOCK_SIZE_N / THREAD_SIZE_N, BLOCK_SIZE_M / THREAD_SIZE_M);
+    dim3 dimGrid(N / BLOCK_SIZE_N, M / BLOCK_SIZE_M);
+    */
   int8_t * A = reinterpret_cast<int8_t*>(input0);
-  int8_t * W = reinterpret_cast<int8_t*>(input1);
-  int * C = reinterpret_cast<int *>(input7);
-  int8_t * D = reinterpret_cast<int8_t*>(output0);
-  const int Integer = (int)(*input5);
-  const int Shift_val = (int)(*input6);
+  int8_t * B = reinterpret_cast<int8_t*>(input1);
+  int * bias = reinterpret_cast<int *>(input7);
+  int8_t * C = reinterpret_cast<int8_t*>(output0);
+  const int integer = (int)(*input5);
+  const int shift = (int)(*input6);
 
-  __shared__ int8_t As[BLOCK_SIZE_M * BLOCK_SIZE_K];
-  __shared__ int8_t Bs[BLOCK_SIZE_N * BLOCK_SIZE_K];
+  __shared__ uint8_t As[BLOCK_SIZE_M * BLOCK_SIZE_K];
+  __shared__ uint8_t Bs[BLOCK_SIZE_N * BLOCK_SIZE_K];
 
-  int integer = Integer;
-  int shift_val = Shift_val;
   int accum[THREAD_SIZE_N][THREAD_SIZE_M] = {0};
-  int8_t a_frag[THREAD_SIZE_M][THREAD_SIZE_K];
-  int8_t b_frag[THREAD_SIZE_N][THREAD_SIZE_K];
+  uint8_t a_frag[THREAD_SIZE_M][THREAD_SIZE_K];
+  uint8_t b_frag[THREAD_SIZE_N][THREAD_SIZE_K];
 
-  int A_THREAD_PER_ROW = BLOCK_SIZE_M / 4;
-  int B_THREAD_PER_ROW = BLOCK_SIZE_N / 4;
+  constexpr int A_THREAD_PER_ROW = BLOCK_SIZE_K / 16;
+  constexpr int B_THREAD_PER_ROW = BLOCK_SIZE_N / 16;
 
-  int bszy = BLOCK_SIZE_M / THREAD_SIZE_M;
-  int bszx = BLOCK_SIZE_N / THREAD_SIZE_N;
+  constexpr int bszy = BLOCK_SIZE_M / THREAD_SIZE_M;
+  constexpr int bszx = BLOCK_SIZE_N / THREAD_SIZE_N;
 
-  int THREADS_PER_BLOCK = bszy * bszx;
+  constexpr int THREADS_PER_BLOCK = bszy * bszx;
 
   int A_TILE_ROW_STRIDE = THREADS_PER_BLOCK / A_THREAD_PER_ROW;
   int B_TILE_ROW_STRIDE = THREADS_PER_BLOCK / B_THREAD_PER_ROW;
@@ -52,65 +55,84 @@ extern "C" __global__ void MatrixMulCUDA_8bit_bias(float *input0, float *input1,
   int A_BLOCK_ROW_START = tid / A_THREAD_PER_ROW;
   int B_BLOCK_ROW_START = tid / B_THREAD_PER_ROW;
 
-  int A_BLOCK_COL_START = tid % A_THREAD_PER_ROW * 4;
-  int B_BLOCK_COL_START = tid % B_THREAD_PER_ROW * 4;
+  int A_BLOCK_COL_START = tid % A_THREAD_PER_ROW * 16;
+  int B_BLOCK_COL_START = tid % B_THREAD_PER_ROW * 16;
 
+
+  constexpr int vBLOCK_SIZE_M = BLOCK_SIZE_M / THREAD_SIZE_M;
+  constexpr int vBLOCK_SIZE_N = BLOCK_SIZE_N / THREAD_SIZE_N;
   for(int tile_idx = 0; tile_idx < K; tile_idx += BLOCK_SIZE_K){
-  #pragma unroll
-      for(int k = 0; k < BLOCK_SIZE_K; k += A_TILE_ROW_STRIDE){
-          reinterpret_cast<unsigned int*>(&(As[(k+A_BLOCK_ROW_START) * BLOCK_SIZE_M + A_BLOCK_COL_START]))[0] =
-          reinterpret_cast<unsigned int*>(&(A[(tile_idx+k+A_BLOCK_ROW_START) * M + by*BLOCK_SIZE_M+A_BLOCK_COL_START]))[0];
+      #pragma unroll
+      for(int k = 0; k < BLOCK_SIZE_M; k += A_TILE_ROW_STRIDE){
+          FETCH_FLOAT4(As[OFFSET(k+A_BLOCK_ROW_START, A_BLOCK_COL_START, BLOCK_SIZE_K)]) =
+              FETCH_FLOAT4(A[OFFSET(by*BLOCK_SIZE_M+k+A_BLOCK_ROW_START, tile_idx+A_BLOCK_COL_START, K)]);
       }
-
-  #pragma unroll
+      #pragma unroll
       for(int k = 0; k < BLOCK_SIZE_K; k += B_TILE_ROW_STRIDE){
-          reinterpret_cast<unsigned int*>(&(Bs[(k+B_BLOCK_ROW_START) * BLOCK_SIZE_N + B_BLOCK_COL_START]))[0] =
-          reinterpret_cast<unsigned int*>(&(W[(tile_idx+k+B_BLOCK_ROW_START) * N + bx*BLOCK_SIZE_N+B_BLOCK_COL_START]))[0];
+          FETCH_FLOAT4(Bs[OFFSET(k+B_BLOCK_ROW_START, B_BLOCK_COL_START, BLOCK_SIZE_N)]) =
+              FETCH_FLOAT4(B[OFFSET(tile_idx+k+B_BLOCK_ROW_START, bx*BLOCK_SIZE_N+B_BLOCK_COL_START, N)]);
       }
-
       __syncthreads();
 
-  #pragma unroll
+      #pragma unroll
       for(int k = 0; k < BLOCK_SIZE_K; k += THREAD_SIZE_K){
-      #pragma unroll
-          for(int i = 0; i < THREAD_SIZE_K; i ++){
           #pragma unroll
-              for(int j = 0; j < THREAD_SIZE_M; j += 1){
-                  a_frag[j][i] = As[(k+i) * BLOCK_SIZE_M + ty * THREAD_SIZE_M+j];
-              }
-          }
-      #pragma unroll
-          for(int i = 0; i < THREAD_SIZE_K; i ++){
-          #pragma unroll
-              for(int j = 0; j < THREAD_SIZE_N; j += 1){
-                  b_frag[j][i] = Bs[(k+i) * BLOCK_SIZE_N + tx * THREAD_SIZE_N+j];
+          for(int j = 0; j < THREAD_SIZE_M; j += 1){
+              #pragma unroll
+              for(int i = 0; i < THREAD_SIZE_K; i += 4){
+                  FETCH_UINT32(a_frag[j][i]) = FETCH_UINT32(As[OFFSET(ty + vBLOCK_SIZE_M * j, k+i, BLOCK_SIZE_K)]);
               }
           }
 
-      #pragma unroll
-          for(int i = 0; i < THREAD_SIZE_N; i++){
-          #pragma unroll
-              for(int j = 0; j < THREAD_SIZE_M; j++){
+          /*
+          for(int i = 0; i < THREAD_SIZE_K; i++){
               #pragma unroll
+              for(int j = 0; j < THREAD_SIZE_M; j += 1){
+                  a_frag[j][i] = As[OFFSET(ty + vBLOCK_SIZE_M * j, k+i, BLOCK_SIZE_K)];
+                  //a_frag[j][i] = As[OFFSET(k+i, ty + vBLOCK_SIZE_M * j, BLOCK_SIZE_M)];
+              }
+          }
+          */
+
+          #pragma unroll
+          for(int i = 0; i < THREAD_SIZE_K; i++){
+              #pragma unroll
+              for(int j = 0; j < THREAD_SIZE_N; j += 1){
+                  b_frag[j][i] = Bs[OFFSET(k+i, tx + vBLOCK_SIZE_N * j, BLOCK_SIZE_N)];
+              }
+          }
+
+          #pragma unroll
+          for(int i = 0; i < THREAD_SIZE_N; i++){
+              #pragma unroll
+              for(int j = 0; j < THREAD_SIZE_M; j++){
+                  #pragma unroll
                   for(int k_in = 0; k_in < THREAD_SIZE_K; k_in += 4){
-                      int pack_val1 = reinterpret_cast<unsigned int*>(&(a_frag[j][k_in]))[0];
-                      int pack_val2 = reinterpret_cast<unsigned int*>(&(b_frag[i][k_in]))[0];
+                      int pack_val1 = FETCH_INT32(a_frag[j][k_in]);
+                      int pack_val2 = FETCH_INT32(b_frag[i][k_in]);
                       accum[i][j] = amd_mixed_dot(pack_val1, pack_val2, accum[i][j], true);
                   }
               }
           }
       }
+
       __syncthreads();
   }
 
-#pragma unroll
+  int bias_local[THREAD_SIZE_N];
   for(int thread_x = 0; thread_x < THREAD_SIZE_N; thread_x++){
+      bias_local[thread_x] = bias[BLOCK_SIZE_N * bx + tx + thread_x * vBLOCK_SIZE_N];
+  }
+
   #pragma unroll
-      for(int thread_y = 0; thread_y < THREAD_SIZE_M; thread_y++){
-          (
-              D[(BLOCK_SIZE_N * bx + tx * THREAD_SIZE_N + thread_x) * M +
-              BLOCK_SIZE_M * by + ty * THREAD_SIZE_M + thread_y
-          ]) = (int8_t)(((accum[thread_x][thread_y] + C[(BLOCK_SIZE_N * bx + tx * THREAD_SIZE_N + thread_x)]) * integer) >> shift_val);
+  for(int thread_x = 0; thread_x < THREAD_SIZE_N; thread_x++){
+      #pragma unroll
+      for(int thread_y = 0; thread_y < THREAD_SIZE_M; thread_y+=1){
+          C[OFFSET(
+              BLOCK_SIZE_M * by + ty + thread_y * vBLOCK_SIZE_M,
+              BLOCK_SIZE_N * bx + tx + thread_x * vBLOCK_SIZE_N,
+              N
+          )] =(uint8_t)((((accum[thread_x][thread_y]) + bias_local[thread_x]) * integer) >> shift);
       }
   }
 
