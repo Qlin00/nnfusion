@@ -51,6 +51,8 @@ namespace nnfusion
                         std::make_shared<op::Dot>(
                             0, false, static_cast<bool>(transA), static_cast<bool>(transB)),
                         {A, B});
+                    int tesa_id = node.get_attribute_value<int64_t>("tesa_id", -1);
+                    result->Set<int>("TESAID", std::move(tesa_id));
 
                     if (alpha_value != 1)
                     {
