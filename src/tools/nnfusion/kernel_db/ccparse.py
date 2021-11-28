@@ -208,24 +208,21 @@ def parse(code, parameters):
 
     func_sig, func_body = re_func.match(code).groups()
     new_code = sync_code = func_body
+    # print(func_sig)
+    # parser.parse(func_sig)
+    # print(parameters)
+    # for (i, dtype) in enumerate(parameters["dtype"]):
+    #     # print(ar)
+    #     print(dtype, arguments["dtype"][i])
+    #     assert dtype == arguments["dtype"][i]
+    #     if parameters["symbol"][i] != arguments["symbol"][i]:
+    #         new_code = "{} {} = {};\n".format(
+    #             dtype, arguments["symbol"][i], parameters["symbol"][i]) + new_code
 
-    parser.parse(func_sig)
-    print(parameters)
-    for (i, dtype) in enumerate(parameters["dtype"]):
-        print(dtype, arguments["dtype"][i])
-        assert dtype == arguments["dtype"][i]
-        if parameters["symbol"][i] != arguments["symbol"][i]:
-            new_code = "{} {} = {};\n".format(
-                dtype, arguments["symbol"][i], parameters["symbol"][i]) + new_code
+    # for m in re_sharedmem.finditer(code):
+    #     new_code = new_code.replace(m.group(0), "")
+    #     parser.parse(m.group(0))
 
-    for m in re_sharedmem.finditer(code):
-        new_code = new_code.replace(m.group(0), "")
-        parser.parse(m.group(0))
 
-    for m in re_syncthread.finditer(code):
-        sync_code = sync_code.replace(m.group(0), "__LOGSYNC()\n")
-    sync_code = "#define __LOGSYNC() {__syncthreads(); SYNC_COUNT++;}\n" + \
-        func_sig + "{\n" + "int SYNC_COUNT = 0;\n" + \
-        sync_code + print_sync + "}"
 
-    return func_body, shared_memory, new_code, sync_code, signature[-1]
+    return func_body, shared_memory, new_code, sync_code, ""

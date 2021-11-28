@@ -135,15 +135,15 @@ def gen_config(op_type, kernel, shared_memory, num_sync):
         if op_type in conv_augmented:
             config["in_shape"].append(config["out_shape"][0])
             config[
-                "function_signature"] = "extern \"C\" __global__  void (float* input0, float* input1, float* input2, float* output0)"
+                "function_signature"] = "extern \"C\"    void (float* input0, float* input1, float* input2, float* output0)"
         else:
-            config["function_signature"] = "extern \"C\" __global__  void (float* input0, float* input1, float* output0)"
+            config["function_signature"] = "extern \"C\"    void (float* input0, float* input1, float* output0)"
     elif (op_type == "Dot"):
         config["in_shape"] = [kernel["parameters"]
                               ["arg0_shape"], kernel["parameters"]["arg1_shape"]]
         config["out_shape"] = [kernel["parameters"]["out_shape"]]
         config[
-            "function_signature"] = "extern \"C\" __global__  void (float* __restrict__ input0,  float* __restrict__ input1,  float* __restrict__ output0)"
+            "function_signature"] = "extern \"C\"    void (float* __restrict__ input0,  float* __restrict__ input1,  float* __restrict__ output0)"
     elif ("QuantizeDot" in op_type):
         config["in_shape"] = []
         for i in range(100):
@@ -155,7 +155,7 @@ def gen_config(op_type, kernel, shared_memory, num_sync):
         # in_paranames = ','.join(['float* __restrict__ input%d'%i for i in range(len(config["in_shape"]))])
         input_paras = ['float* __restrict__ input%d'%i for i in range(len(param_list[op_type]['symbol'])-1)]
         config[
-            "function_signature"] = "extern \"C\" __global__  void (%s, float* __restrict__ output0)" % ','.join(input_paras)
+            "function_signature"] = "extern \"C\"    void (%s, float* __restrict__ output0)" % ','.join(input_paras)
     elif (op_type == 'SparseDot'):
         config["in_shape"] = []
         for i in range(100):
@@ -166,15 +166,15 @@ def gen_config(op_type, kernel, shared_memory, num_sync):
         config["out_shape"] = [kernel["parameters"]["out_shape"]]
         in_paranames = ','.join(['float* __restrict__ input%d'%i for i in range(len(config["in_shape"]))])
         config[
-            "function_signature"] = "extern \"C\" __global__  void (%s, float* __restrict__ output0)" % in_paranames
+            "function_signature"] = "extern \"C\"    void (%s, float* __restrict__ output0)" % in_paranames
     elif (op_type == "Relu"):
         config["in_shape"] = [kernel["parameters"]["input_shape"]]
         config["out_shape"] = [kernel["parameters"]["output_shape"]]
-        config["function_signature"] = "extern \"C\" __global__  void (float* input0, float* output0)"
+        config["function_signature"] = "extern \"C\"    void (float* input0, float* output0)"
     elif (op_type == "AvgPool" or op_type == "MaxPool"):
         config["in_shape"] = [kernel["parameters"]["input_shape"]]
         config["out_shape"] = [kernel["parameters"]["output_shape"]]
-        config["function_signature"] = "extern \"C\" __global__  void (float* input0, float* output0)"
+        config["function_signature"] = "extern \"C\"    void (float* input0, float* output0)"
         config["parameters"] = {
             "window_shape": kernel["parameters"]["window_shape"],
             "window_stride": kernel["parameters"]["window_stride"],
@@ -189,7 +189,7 @@ def gen_config(op_type, kernel, shared_memory, num_sync):
         config["out_shape"] = [kernel["parameters"]["out_shape"]]
         in_paranames = ','.join(['float* __restrict__ input%d'%i for i in range(len(config["in_shape"]))])
         config[
-            "function_signature"] = "extern \"C\" __global__  void (%s, float* __restrict__ output0)" % in_paranames
+            "function_signature"] = "extern \"C\"    void (%s, float* __restrict__ output0)" % in_paranames
     elif (op_type=="QuantizeDepthwiseConv2dNative"):
         if "identifier_suffix" in kernel["parameters"]:
             config["identifier_suffix"] = kernel["parameters"]["identifier_suffix"]
@@ -210,7 +210,7 @@ def gen_config(op_type, kernel, shared_memory, num_sync):
         input_paras = ['float* __restrict__ input%d'%i for i in range(5)]
         out_paras = ['float* __restrict__ output0']
         config[
-            "function_signature"] = "extern \"C\" __global__  void (%s)" %(','.join(input_paras+out_paras))
+            "function_signature"] = "extern \"C\"    void (%s)" %(','.join(input_paras+out_paras))
 
 
     elif ("QuantizeConvolution" in op_type):
@@ -232,7 +232,7 @@ def gen_config(op_type, kernel, shared_memory, num_sync):
         input_paras = ['float* __restrict__ input%d'%i for i in range(len(param_list[op_type]['symbol'])-1)]
         out_paras = ['float* __restrict__ output0']
         config[
-            "function_signature"] = "extern \"C\" __global__  void (%s)" %(','.join(input_paras+out_paras))
+            "function_signature"] = "extern \"C\"    void (%s)" %(','.join(input_paras+out_paras))
 
 
     else:

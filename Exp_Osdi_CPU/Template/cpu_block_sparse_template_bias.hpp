@@ -1,7 +1,9 @@
+#include <algorithm>
+using namespace std;
 #define A(i,j) A[(i)+(j)*LDA]
 #define B(i,j) B[(i)+(j)*LDB]
 #define C(i,j) C[(i)+(j)*LDC]
-
+float * GLOBAL_MEMORY = (float*)malloc(sizeof(float) *1024*4096*32);
 void packing_a_k11(float *src, float *dst, int leading_dim, int dim_first, int dim_second, int M_THREAD_TILE){
     //dim_first: M, dim_second: K
     float *tosrc,*todst;

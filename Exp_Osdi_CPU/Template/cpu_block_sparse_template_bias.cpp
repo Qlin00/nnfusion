@@ -11,6 +11,10 @@ void BLOCK_SPARSE_MATMUL(float* input0, float* input1,float* input2, float* inpu
     float * bias = reinterpret_cast<float*>(input4);
     float *a_buffer_whole = reinterpret_cast<float*>(GLOBAL_MEMORY);   // new add
     float * C = reinterpret_cast<float*>(output0);
+    float alpha = 1.0;
+
+    const int LDA = M;
+    const int LDC = M;
 
     constexpr int M_BLOCKING = BLOCK_SIZE_M_VALUE;
     constexpr int N_BLOCKING = BLOCK_SIZE_N_VALUE;
