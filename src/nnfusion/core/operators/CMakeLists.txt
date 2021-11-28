@@ -32,7 +32,6 @@ set(SRC
     op_define/convert.cpp
     op_define/convolution.cpp
     op_define/fused_convolution.cpp
-
     op_define/cos.cpp
     op_define/cosh.cpp
     op_define/divide.cpp
@@ -92,6 +91,7 @@ set(SRC
     op_define/fused.cpp
     op_define/sparsedot.cpp
     op_define/sputnikdot.cpp
+    op_define/mklsparsedot.cpp
     op_define/hipsparsedot.cpp
     op_define/quantizedot.cpp
     op_define/quantize_depth_conv.cpp
