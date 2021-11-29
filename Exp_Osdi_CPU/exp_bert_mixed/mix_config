@@ -1,0 +1,72 @@
+1 Quantize kernel_1 8 8 weight_1.bin scale_integer_1.bin scale_shift_1.bin bias_1.bin
+2 Quantize kernel_2 8 8 weight_2.bin scale_integer_2.bin scale_shift_2.bin bias_2.bin
+3 Quantize kernel_3 8 8 weight_3.bin scale_integer_3.bin scale_shift_3.bin bias_3.bin
+4 Quantize kernel_4 8 8 weight_4.bin scale_integer_4.bin scale_shift_4.bin bias_4.bin
+5 BlockQuantize kernel_5 8 8 row_5.bin col_5.bin value_5.bin scale_integer_5.bin scale_shift_5.bin bias_5.bin
+6 MklSparse
+7 Quantize kernel_7 8 8 weight_7.bin scale_integer_7.bin scale_shift_7.bin bias_7.bin
+8 Quantize kernel_8 8 8 weight_8.bin scale_integer_8.bin scale_shift_8.bin bias_8.bin
+9 Quantize kernel_9 8 8 weight_9.bin scale_integer_9.bin scale_shift_9.bin bias_9.bin
+10 BlockQuantize kernel_10 8 8 row_10.bin col_10.bin value_10.bin scale_integer_10.bin scale_shift_10.bin bias_10.bin
+11 BlockQuantize kernel_11 8 8 row_11.bin col_11.bin value_11.bin scale_integer_11.bin scale_shift_11.bin bias_11.bin
+12 MklSparse
+13 BlockQuantize kernel_13 8 8 row_13.bin col_13.bin value_13.bin scale_integer_13.bin scale_shift_13.bin bias_13.bin
+14 BlockQuantize kernel_14 8 8 row_14.bin col_14.bin value_14.bin scale_integer_14.bin scale_shift_14.bin bias_14.bin
+15 BlockQuantize kernel_15 8 8 row_15.bin col_15.bin value_15.bin scale_integer_15.bin scale_shift_15.bin bias_15.bin
+16 BlockQuantize kernel_16 8 8 row_16.bin col_16.bin value_16.bin scale_integer_16.bin scale_shift_16.bin bias_16.bin
+17 BlockQuantize kernel_17 8 8 row_17.bin col_17.bin value_17.bin scale_integer_17.bin scale_shift_17.bin bias_17.bin
+18 BlockQuantize kernel_18 8 8 row_18.bin col_18.bin value_18.bin scale_integer_18.bin scale_shift_18.bin bias_18.bin
+19 BlockQuantize kernel_19 8 8 row_19.bin col_19.bin value_19.bin scale_integer_19.bin scale_shift_19.bin bias_19.bin
+20 BlockQuantize kernel_20 8 8 row_20.bin col_20.bin value_20.bin scale_integer_20.bin scale_shift_20.bin bias_20.bin
+21 BlockQuantize kernel_21 8 8 row_21.bin col_21.bin value_21.bin scale_integer_21.bin scale_shift_21.bin bias_21.bin
+22 BlockQuantize kernel_22 8 8 row_22.bin col_22.bin value_22.bin scale_integer_22.bin scale_shift_22.bin bias_22.bin
+23 BlockQuantize kernel_23 8 8 row_23.bin col_23.bin value_23.bin scale_integer_23.bin scale_shift_23.bin bias_23.bin
+24 BlockQuantize kernel_24 8 8 row_24.bin col_24.bin value_24.bin scale_integer_24.bin scale_shift_24.bin bias_24.bin
+25 Quantize kernel_25 8 8 weight_25.bin scale_integer_25.bin scale_shift_25.bin bias_25.bin
+26 Quantize kernel_26 8 8 weight_26.bin scale_integer_26.bin scale_shift_26.bin bias_26.bin
+27 Quantize kernel_27 8 8 weight_27.bin scale_integer_27.bin scale_shift_27.bin bias_27.bin
+28 Quantize kernel_28 8 8 weight_28.bin scale_integer_28.bin scale_shift_28.bin bias_28.bin
+29 BlockQuantize kernel_29 8 8 row_29.bin col_29.bin value_29.bin scale_integer_29.bin scale_shift_29.bin bias_29.bin
+30 BlockQuantize kernel_30 8 8 row_30.bin col_30.bin value_30.bin scale_integer_30.bin scale_shift_30.bin bias_30.bin
+31 BlockQuantize kernel_31 8 8 row_31.bin col_31.bin value_31.bin scale_integer_31.bin scale_shift_31.bin bias_31.bin
+32 BlockQuantize kernel_32 8 8 row_32.bin col_32.bin value_32.bin scale_integer_32.bin scale_shift_32.bin bias_32.bin
+33 BlockQuantize kernel_33 8 8 row_33.bin col_33.bin value_33.bin scale_integer_33.bin scale_shift_33.bin bias_33.bin
+34 BlockQuantize kernel_34 8 8 row_34.bin col_34.bin value_34.bin scale_integer_34.bin scale_shift_34.bin bias_34.bin
+35 BlockQuantize kernel_35 8 8 row_35.bin col_35.bin value_35.bin scale_integer_35.bin scale_shift_35.bin bias_35.bin
+36 BlockQuantize kernel_36 8 8 row_36.bin col_36.bin value_36.bin scale_integer_36.bin scale_shift_36.bin bias_36.bin
+37 BlockQuantize kernel_37 8 8 row_37.bin col_37.bin value_37.bin scale_integer_37.bin scale_shift_37.bin bias_37.bin
+38 BlockQuantize kernel_38 8 8 row_38.bin col_38.bin value_38.bin scale_integer_38.bin scale_shift_38.bin bias_38.bin
+39 BlockQuantize kernel_39 8 8 row_39.bin col_39.bin value_39.bin scale_integer_39.bin scale_shift_39.bin bias_39.bin
+40 BlockQuantize kernel_40 8 8 row_40.bin col_40.bin value_40.bin scale_integer_40.bin scale_shift_40.bin bias_40.bin
+41 BlockQuantize kernel_41 8 8 row_41.bin col_41.bin value_41.bin scale_integer_41.bin scale_shift_41.bin bias_41.bin
+42 BlockQuantize kernel_42 8 8 row_42.bin col_42.bin value_42.bin scale_integer_42.bin scale_shift_42.bin bias_42.bin
+43 BlockQuantize kernel_43 8 8 row_43.bin col_43.bin value_43.bin scale_integer_43.bin scale_shift_43.bin bias_43.bin
+44 BlockQuantize kernel_44 8 8 row_44.bin col_44.bin value_44.bin scale_integer_44.bin scale_shift_44.bin bias_44.bin
+45 BlockQuantize kernel_45 8 8 row_45.bin col_45.bin value_45.bin scale_integer_45.bin scale_shift_45.bin bias_45.bin
+46 BlockQuantize kernel_46 8 8 row_46.bin col_46.bin value_46.bin scale_integer_46.bin scale_shift_46.bin bias_46.bin
+47 BlockQuantize kernel_47 8 8 row_47.bin col_47.bin value_47.bin scale_integer_47.bin scale_shift_47.bin bias_47.bin
+48 BlockQuantize kernel_48 8 8 row_48.bin col_48.bin value_48.bin scale_integer_48.bin scale_shift_48.bin bias_48.bin
+49 BlockQuantize kernel_49 8 8 row_49.bin col_49.bin value_49.bin scale_integer_49.bin scale_shift_49.bin bias_49.bin
+50 BlockQuantize kernel_50 8 8 row_50.bin col_50.bin value_50.bin scale_integer_50.bin scale_shift_50.bin bias_50.bin
+51 BlockQuantize kernel_51 8 8 row_51.bin col_51.bin value_51.bin scale_integer_51.bin scale_shift_51.bin bias_51.bin
+52 BlockQuantize kernel_52 8 8 row_52.bin col_52.bin value_52.bin scale_integer_52.bin scale_shift_52.bin bias_52.bin
+53 BlockQuantize kernel_53 8 8 row_53.bin col_53.bin value_53.bin scale_integer_53.bin scale_shift_53.bin bias_53.bin
+54 BlockQuantize kernel_54 8 8 row_54.bin col_54.bin value_54.bin scale_integer_54.bin scale_shift_54.bin bias_54.bin
+55 BlockQuantize kernel_55 8 8 row_55.bin col_55.bin value_55.bin scale_integer_55.bin scale_shift_55.bin bias_55.bin
+56 BlockQuantize kernel_56 8 8 row_56.bin col_56.bin value_56.bin scale_integer_56.bin scale_shift_56.bin bias_56.bin
+57 BlockQuantize kernel_57 8 8 row_57.bin col_57.bin value_57.bin scale_integer_57.bin scale_shift_57.bin bias_57.bin
+58 BlockQuantize kernel_58 8 8 row_58.bin col_58.bin value_58.bin scale_integer_58.bin scale_shift_58.bin bias_58.bin
+59 BlockQuantize kernel_59 8 8 row_59.bin col_59.bin value_59.bin scale_integer_59.bin scale_shift_59.bin bias_59.bin
+60 BlockQuantize kernel_60 8 8 row_60.bin col_60.bin value_60.bin scale_integer_60.bin scale_shift_60.bin bias_60.bin
+61 BlockQuantize kernel_61 8 8 row_61.bin col_61.bin value_61.bin scale_integer_61.bin scale_shift_61.bin bias_61.bin
+62 BlockQuantize kernel_62 8 8 row_62.bin col_62.bin value_62.bin scale_integer_62.bin scale_shift_62.bin bias_62.bin
+63 BlockQuantize kernel_63 8 8 row_63.bin col_63.bin value_63.bin scale_integer_63.bin scale_shift_63.bin bias_63.bin
+64 BlockQuantize kernel_64 8 8 row_64.bin col_64.bin value_64.bin scale_integer_64.bin scale_shift_64.bin bias_64.bin
+65 BlockQuantize kernel_65 8 8 row_65.bin col_65.bin value_65.bin scale_integer_65.bin scale_shift_65.bin bias_65.bin
+66 BlockQuantize kernel_66 8 8 row_66.bin col_66.bin value_66.bin scale_integer_66.bin scale_shift_66.bin bias_66.bin
+67 BlockQuantize kernel_67 8 8 row_67.bin col_67.bin value_67.bin scale_integer_67.bin scale_shift_67.bin bias_67.bin
+68 BlockQuantize kernel_68 8 8 row_68.bin col_68.bin value_68.bin scale_integer_68.bin scale_shift_68.bin bias_68.bin
+69 BlockQuantize kernel_69 8 8 row_69.bin col_69.bin value_69.bin scale_integer_69.bin scale_shift_69.bin bias_69.bin
+70 BlockQuantize kernel_70 8 8 row_70.bin col_70.bin value_70.bin scale_integer_70.bin scale_shift_70.bin bias_70.bin
+71 BlockQuantize kernel_71 8 8 row_71.bin col_71.bin value_71.bin scale_integer_71.bin scale_shift_71.bin bias_71.bin
+72 BlockQuantize kernel_72 8 8 row_72.bin col_72.bin value_72.bin scale_integer_72.bin scale_shift_72.bin bias_72.bin
