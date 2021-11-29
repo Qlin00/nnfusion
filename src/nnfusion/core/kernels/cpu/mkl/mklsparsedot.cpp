@@ -78,7 +78,7 @@ LanguageUnit_p cpu::MklSparseDot::emit_function_body()
         {{"K", k},
          {"N", n},
          {"M", m}});
-
+    lu << code;
 
     return _lu;
 }
