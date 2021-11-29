@@ -2,19 +2,19 @@
 
 void MatrixMulCUDA_8bit_bias(float *input0, float *input1, float *input2, float *input3, float *input4, float *input5, float * input6, float *input7, float *output0) 
 {
-    float * A = reinterpret_cast<float*>(input0);
-    float * val = reinterpret_cast<float*>(input1);
+    uint8_t * A = reinterpret_cast<uint8_t*>(input0);
+    uint8_t * val = reinterpret_cast<uint8_t*>(input1);
     int * row_ptr = reinterpret_cast<int*>(input2);
     int * col_idx = reinterpret_cast<int*>(input3);
     const int alpha = (int)(*input4);
     const int integer = (int)(*input5);
     int * C = reinterpret_cast< int *>(input6);             // new add
-    float *a_buffer_whole = GLOBAL_MEMORY;   // new add
+    uint8_t *a_buffer_whole = reinterpret_cast<uint8_t*>(GLOBAL_MEMORY);   // new add
     uint8_t * C_int8 = reinterpret_cast<uint8_t*>(output0);
 
-    const int M=M_VALUE;
-    const int N=N_VALUE;
-    const int K=K_VALUE;
+    const int M=GLOBAL_M_VALUE;
+    const int N=GLOBAL_N_VALUE;
+    const int K=GLOBAL_K_VALUE;
     constexpr int M_BLOCKING = BLOCK_SIZE_M_VALUE;
     constexpr int N_BLOCKING = BLOCK_SIZE_N_VALUE;
     constexpr int K_BLOCKING = BLOCK_SIZE_K_VALUE;
@@ -22,12 +22,14 @@ void MatrixMulCUDA_8bit_bias(float *input0, float *input1, float *input2, float 
     constexpr int N_THREAD_TILE = THREAD_SIZE_N_VALUE;
     constexpr int M_ITER = (M_THREAD_TILE/16);
     constexpr int N_ITER = (N_THREAD_TILE/2);
+    float alpha = 1.0;
 
-    
+    const int LDA = M;
+    const int LDC = M;
     int m_inc = M_BLOCKING, n_inc = N_BLOCKING, k_inc = K_BLOCKING;
 
     //uint8_t *a_buffer_whole = (uint8_t *)aligned_alloc(4096, M * K * sizeof(uint8_t));
-    uint8_t *a_buffer_whole = (uint8_t *)malloc(M * K * sizeof(uint8_t));
+    // uint8_t *a_buffer_whole = (uint8_t *)malloc(M * K * sizeof(uint8_t));
     uint8_t *b_buffer_whole = val;
 
 #pragma omp parallel for num_threads(4) collapse(2)

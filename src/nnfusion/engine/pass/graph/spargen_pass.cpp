@@ -11,6 +11,7 @@
 #include "nnfusion/core/graph/gnode.hpp"
 #include "nnfusion/core/graph/graph.hpp"
 #include "nnfusion/core/kernels/cuda_gpu/cuda_emitter.hpp"
+#include "nnfusion/core/kernels/cpu/cpu_kernel_emitter.hpp"
 #include "nnfusion/core/kernels/kernel_registration.hpp"
 #include "nnfusion/core/operators/op_define/broadcast.hpp"
 #include "nnfusion/core/operators/op_define/noop.hpp"
@@ -1379,22 +1380,29 @@ private:
                 m_graph->remove_node(tmp_node);
             }
         }
+        if(get_device_str(n_device_type) == "GENERIC_CPU"){
+            std::shared_ptr<KernelContext> ctx(new KernelContext(sparse_dot_node));
+            auto kernel = std::make_shared<kernels::cpu::CacheCPUEmitter>(ctx, kernel_entry);
+            KernelEmitter::Pointer pkernel = kernel;
 
-        // Bind the fetched kernel here with the new kernel context
-        std::shared_ptr<KernelContext> ctx(new KernelContext(sparse_dot_node));
-        auto kernel = std::make_shared<kernels::cuda::CacheCudaEmitter>(ctx, kernel_entry);
-        KernelEmitter::Pointer pkernel = kernel;
+            // need to emit the source before bind the kernel
+            kernel->get_or_emit_source();
+            (*sparse_dot_node)["Kernel_Selection_Result"] = std::make_pair(n_device_type, pkernel);
+            std::cout << kernel->get_or_emit_source()->body_unit->get_code() << std::endl;
+            std::cout << kernel->get_or_emit_source()->signature_unit->get_code() << std::endl;
 
-        // need to emit the source before bind the kernel
-        kernel->get_or_emit_source();
-        (*sparse_dot_node)["Kernel_Selection_Result"] = std::make_pair(n_device_type, pkernel);
-        std::cout << "###############################" << std::endl;
-        std::cout << kernel->get_or_emit_source()->body_unit->get_code() << std::endl;
-        std::cout << kernel->get_or_emit_source()->signature_unit->get_code() << std::endl;
-        //exit(-1);
-        std::cout << "Bind the Quantized kernel!" << std::endl;
+        }else{
+            // Bind the fetched kernel here with the new kernel context
+            std::shared_ptr<KernelContext> ctx(new KernelContext(sparse_dot_node));
+            auto kernel = std::make_shared<kernels::cuda::CacheCudaEmitter>(ctx, kernel_entry);
+            KernelEmitter::Pointer pkernel = kernel;
 
-
+            // need to emit the source before bind the kernel
+            kernel->get_or_emit_source();
+            (*sparse_dot_node)["Kernel_Selection_Result"] = std::make_pair(n_device_type, pkernel);
+            std::cout << kernel->get_or_emit_source()->body_unit->get_code() << std::endl;
+            std::cout << kernel->get_or_emit_source()->signature_unit->get_code() << std::endl;
+        }
 
     }
 
@@ -1868,16 +1876,30 @@ private:
         }
 
         // Bind the fetched kernel here with the new kernel context
-        std::shared_ptr<KernelContext> ctx(new KernelContext(sparse_dot_node));
-        auto kernel = std::make_shared<kernels::cuda::CacheCudaEmitter>(ctx, kernel_entry);
-        KernelEmitter::Pointer pkernel = kernel;
+        if(get_device_str(n_device_type) == "GENERIC_CPU"){
+            std::shared_ptr<KernelContext> ctx(new KernelContext(sparse_dot_node));
+            auto kernel = std::make_shared<kernels::cpu::CacheCPUEmitter>(ctx, kernel_entry);
+            KernelEmitter::Pointer pkernel = kernel;
 
-        // need to emit the source before bind the kernel
-        kernel->get_or_emit_source();
-        (*sparse_dot_node)["Kernel_Selection_Result"] = std::make_pair(n_device_type, pkernel);
+            // need to emit the source before bind the kernel
+            kernel->get_or_emit_source();
+            (*sparse_dot_node)["Kernel_Selection_Result"] = std::make_pair(n_device_type, pkernel);
+            std::cout << kernel->get_or_emit_source()->body_unit->get_code() << std::endl;
+            std::cout << kernel->get_or_emit_source()->signature_unit->get_code() << std::endl;
+        }else{
+            // Bind the fetched kernel here with the new kernel context
+            std::shared_ptr<KernelContext> ctx(new KernelContext(sparse_dot_node));
+            auto kernel = std::make_shared<kernels::cuda::CacheCudaEmitter>(ctx, kernel_entry);
+            KernelEmitter::Pointer pkernel = kernel;
+
+            // need to emit the source before bind the kernel
+            kernel->get_or_emit_source();
+            (*sparse_dot_node)["Kernel_Selection_Result"] = std::make_pair(n_device_type, pkernel);
+            std::cout << kernel->get_or_emit_source()->body_unit->get_code() << std::endl;
+            std::cout << kernel->get_or_emit_source()->signature_unit->get_code() << std::endl;
+        }
+
         std::cout << "###############################" << std::endl;
-        std::cout << kernel->get_or_emit_source()->body_unit->get_code() << std::endl;
-        std::cout << kernel->get_or_emit_source()->signature_unit->get_code() << std::endl;
         //exit(-1);
         std::cout << "Bind the Quantized kernel!" << std::endl;
         has_constant = true;

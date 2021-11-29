@@ -244,3 +244,38 @@ LanguageUnit_p cpu::CpuKernelEmitter::emit_function_signature()
     lu << join(params, ", ") << ")";
     return _lu;
 }
+
+
+LanguageUnit_p cpu::CacheCPUEmitter::emit_function_signature()
+{
+    LanguageUnit_p _lu(new LanguageUnit(get_function_name() + "_sig"));
+    auto& lu = *_lu;
+
+    std::stringstream ss;
+    ss.str(kernel_entry.function["function_signature"]);
+    lu << ss.str();
+
+    return _lu;
+}
+
+LanguageUnit_p cpu::CacheCPUEmitter::emit_function_body()
+{
+    LanguageUnit_p _lu(new LanguageUnit(get_function_name()));
+    auto& lu = *_lu;
+
+    std::stringstream ss;
+    ss.str(kernel_entry.function["function_body"]);
+    lu << ss.str();
+
+    return _lu;
+}
+
+LanguageUnit_p cpu::CacheCPUEmitter::emit_dependency()
+{
+    LanguageUnit_p _lu(new LanguageUnit(get_function_name() + "_dep"));
+
+    // Todo: load dependency from kernel cache
+    // *_lu << kernel_entry.function["function_dep"];
+    // _lu->require(header::cuda);
+    return _lu;
+}

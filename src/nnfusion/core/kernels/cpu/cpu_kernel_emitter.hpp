@@ -101,6 +101,29 @@ namespace nnfusion
                 bool is_memcpy = false;
             };
 
+
+            class CacheCPUEmitter : public CpuKernelEmitter
+            {
+            public:
+                CacheCPUEmitter(shared_ptr<KernelContext> ctx,
+                                 nnfusion::cache::KernelEntry_p kernel_entry_p)
+                    : CpuKernelEmitter(ctx)
+                {
+                    NNFUSION_CHECK_NOT_NULLPTR(kernel_entry_p);
+                    kernel_entry = *kernel_entry_p;
+
+                    NNFUSION_CHECK(!kernel_entry.function.is_null());
+                }
+
+            private:
+                LanguageUnit_p emit_function_signature() override;
+                LanguageUnit_p emit_function_body() override;
+                LanguageUnit_p emit_dependency() override;
+
+            private:
+                nnfusion::cache::KernelEntry kernel_entry;
+            };
+
             class CustomCPUKernelEmitter : public CpuKernelEmitter
             {
             public:
