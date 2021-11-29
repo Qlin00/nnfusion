@@ -22,7 +22,6 @@ void MatrixMulCUDA_8bit_bias(float *input0, float *input1, float *input2, float 
     constexpr int N_THREAD_TILE = THREAD_SIZE_N_VALUE;
     constexpr int M_ITER = (M_THREAD_TILE/16);
     constexpr int N_ITER = (N_THREAD_TILE/2);
-    float alpha = 1.0;
 
     const int LDA = M;
     const int LDC = M;

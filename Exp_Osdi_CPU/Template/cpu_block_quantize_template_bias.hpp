@@ -4,7 +4,7 @@ using namespace std;
 #define A(i,j) A[(i)+(j)*LDA]
 #define B(i,j) B[(i)+(j)*LDB]
 #define C(i,j) C[(i)+(j)*LDC]
-float * GLOBAL_MEMORY = (float*)malloc(sizeof(float) *1024*4096*32);
+uint8_t * GLOBAL_MEMORY = (uint8_t*)malloc(sizeof(uint8_t) *1024*4096*32);
 void packing_a_k11(uint8_t *src, uint8_t *dst, int leading_dim, int dim_first, int dim_second, int M_THREAD_TILE){
     //dim_first: M, dim_second: K
     uint8_t *tosrc,*todst;

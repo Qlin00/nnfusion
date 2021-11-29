@@ -12,11 +12,11 @@ extern "C" void MatrixMulCUDA_8bit_bias(float *input0, float *input1, float *inp
     dim3 dimBlock(BLOCK_SIZE_N / THREAD_SIZE_N, BLOCK_SIZE_M / THREAD_SIZE_M);
     dim3 dimGrid(N / BLOCK_SIZE_N, M / BLOCK_SIZE_M);
     */
-  int8_t * A = reinterpret_cast<int8_t*>(input0);
-  int8_t * B = reinterpret_cast<int8_t*>(input1);
-  int8_t * a_buffer_whole = reinterpret_cast<int8_t*>(GLOBAL_MEMORY);
+  uint8_t * A = reinterpret_cast<uint8_t*>(input0);
+  uint8_t * B = reinterpret_cast<uint8_t*>(input1);
+  uint8_t * a_buffer_whole = reinterpret_cast<uint8_t*>(GLOBAL_MEMORY);
   int * C = reinterpret_cast<int *>(input7);
-  int8_t * C_int8 = reinterpret_cast<int8_t*>(output0);
+  uint8_t * C_int8 = reinterpret_cast<uint8_t*>(output0);
   const int integer = (int)(*input5);
   const int shift = (int)(*input6);
 
