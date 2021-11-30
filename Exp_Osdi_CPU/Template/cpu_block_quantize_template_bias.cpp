@@ -11,7 +11,9 @@ void MatrixMulCUDA_8bit_bias(float *input0, float *input1, float *input2, float 
     int * C = reinterpret_cast< int *>(input6);             // new add
     uint8_t *a_buffer_whole = reinterpret_cast<uint8_t*>(GLOBAL_MEMORY);   // new add
     uint8_t * C_int8 = reinterpret_cast<uint8_t*>(output0);
-
+    /*
+    COMMENT_TAG
+    */
     const int M=GLOBAL_M_VALUE;
     const int N=GLOBAL_N_VALUE;
     const int K=GLOBAL_K_VALUE;

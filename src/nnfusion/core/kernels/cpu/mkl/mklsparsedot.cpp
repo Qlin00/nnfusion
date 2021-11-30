@@ -43,17 +43,19 @@ LanguageUnit_p cpu::MklSparseDot::emit_function_body()
     // void kernel(mcontext->dtypes[0]* input0, m_context->dtypes[0]* input1, m_context->dtypes[2]* output0)
     auto code = op::create_code_from_template(
         R"(
+    float alpha = 1.0, beta = 0.0;
+    sparse_matrix_t SA;
+    sparse_status_t status;
     float *dense_m = input0;
     float *values = input1;
-    float *rowIndex = (MKL_INT *)input2;
-    float *columns = (MKL_INT *)input3;
+    MKL_INT * rowIndex = (MKL_INT *)input2;
+    MKL_INT * columns = (MKL_INT *)input3;
     
     // NxKxM mkl sparse support sparse_matrix * dense matrix
     status = mkl_sparse_s_create_csr(&SA, SPARSE_INDEX_BASE_ZERO, @M@, @K@, rowIndex, &(rowIndex[1]), columns, values);
     if (status != SPARSE_STATUS_SUCCESS)
     {
         printf("CSR Sparse matrix created failed.\n");
-        return -2;
     }
     // Two Stage algorithms
     // (1) inspector
@@ -70,7 +72,6 @@ LanguageUnit_p cpu::MklSparseDot::emit_function_body()
     if (status != SPARSE_STATUS_SUCCESS)
     {
         printf("Analysis failed!!\n");
-        return -3;
     }
     mkl_sparse_s_mm(SPARSE_OPERATION_NON_TRANSPOSE, alpha, SA, descr, SPARSE_LAYOUT_ROW_MAJOR, dense_m, @N@, @N@, beta, output0, @N@);
 
@@ -87,6 +88,7 @@ LanguageUnit_p cpu::MklSparseDot::emit_dependency()
 {
     LanguageUnit_p _lu(new LanguageUnit(get_function_name() + "_dep"));
     _lu->require(header::cblas);
+    _lu->require(header::mklsparse);
 
     if ((arg0_shape.size() == 3) && (arg1_shape.size() == 2) && reduction_axes == 1)
     {
