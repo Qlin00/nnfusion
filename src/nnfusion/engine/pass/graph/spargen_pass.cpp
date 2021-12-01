@@ -1283,7 +1283,7 @@ private:
         // TODO load the right value according to the config
 
         float* bias_data =
-            (float*)malloc(sizeof(float) * weight_count); // TODO use the correct size here
+            (float*)malloc(sizeof(float) * max(weight_count, out_count)); // TODO use the correct size here
         memset(bias_data, 0, sizeof(float) * weight_count);
         auto dense_op = std::dynamic_pointer_cast<op::Dot>(dot_node->get_op_ptr());
         auto weight_values_node =
@@ -1313,8 +1313,13 @@ private:
         if (has_bias)
         {
             std::cout<<"Has bias: " << has_bias<<std::endl;
-            auto bias_shape = nnfusion::Shape(vector<size_t>(
-                {weight_count})); // TODO currently the memory space for bias is wasted
+            nnfusion::Shape bias_shape;
+            if(get_device_str(n_device_type)=="GENERIC_CPU"){
+                bias_shape = nnfusion::Shape(vector<size_t>({1+out_count}));
+            }else{
+                bias_shape = nnfusion::Shape(vector<size_t>(
+                    {weight_count})); // TODO currently the memory space for bias is wasted
+            }
             // TODO also load the correct bias weights
             auto bias = std::make_shared<op::Constant>(
                 from<float>(), bias_shape, static_cast<void*>(bias_data));
@@ -1774,7 +1779,7 @@ private:
         // TODO load the right value according to the config
 
         float* bias_data =
-            (float*)malloc(sizeof(float) * weight_count); // TODO use the correct size here
+            (float*)malloc(sizeof(float) * max(weight_count, out_count)); // TODO use the correct size here
         memset(bias_data, 0, sizeof(float) * weight_count);
         auto dense_op = std::dynamic_pointer_cast<op::Dot>(dot_node->get_op_ptr());
         auto weight_values_node =
@@ -1811,8 +1816,14 @@ private:
                 bias_count = load_from_file(
                     (char*)bias_data, sizeof(float) * weight_count, this->bias_data_path[tesaid]);
             }
-            auto bias_shape = nnfusion::Shape(vector<size_t>(
-                {1 + bias_count/sizeof(float)})); // TODO currently the memory space for bias is wasted
+            nnfusion::Shape bias_shape;
+            if(get_device_str(n_device_type)=="GENERIC_CPU"){
+                // CPU kernels need more memory
+                bias_shape = nnfusion::Shape(vector<size_t>({1+out_count}));
+            }else{
+                bias_shape = nnfusion::Shape(vector<size_t>(
+                    {1 + bias_count/sizeof(float)})); // TODO currently the memory space for bias is wasted
+            }
             // TODO also load the correct bias weights
             auto bias = std::make_shared<op::Constant>(
                 from<float>(), bias_shape, static_cast<void*>(bias_data));
