@@ -428,11 +428,11 @@ private:
         static_cast<const float*>(weight_data_ptr), w_shape, sparse_threshold);
         int nnz = values->size();
         // cause that sputnik kernel only support the sparse matric * dense matrix
-        int dim_m = w_shape[0];
-        int dim_k = w_shape[1];
-        int dim_n = out_count/dim_m;
-
-
+        auto out_dim = out_shape.size();
+        int dim_n = out_shape[out_dim-1];
+        int dim_m = out_count / dim_n;
+        int dim_k = weight_count/dim_n;
+        swap(dim_m, dim_n); // only support sparse * dense
         // auto m_dim_node = create_constant_node(n_device_type, ori_device_id, dim_m);
         // auto k_dim_node = create_constant_node(n_device_type, ori_device_id, dim_k);
         // auto n_dim_node = create_constant_node(n_device_type, ori_device_id, dim_n);
@@ -577,9 +577,11 @@ private:
         static_cast<const float*>(weight_data_ptr), w_shape, sparse_threshold);
         int nnz = values->size();
         // cause that sputnik kernel only support the sparse matric * dense matrix
-        int dim_m = w_shape[0];
-        int dim_k = w_shape[1];
-        int dim_n = out_count/dim_m;
+        auto out_dim = out_shape.size();
+        int dim_n = out_shape[out_dim-1];
+        int dim_m = out_count / dim_n;
+        int dim_k = weight_count/dim_n;
+        swap(dim_m, dim_n); // only support sparse * dense
 
         auto swizzle_idx = SortedRowSwizzle(*row_idx);
         // auto m_dim_node = create_constant_node(n_device_type, ori_device_id, dim_m);
@@ -728,10 +730,11 @@ private:
         static_cast<const float*>(weight_data_ptr), w_shape, sparse_threshold);
         int nnz = values->size();
         // cause that sputnik kernel only support the sparse matric * dense matrix
-        int dim_m = w_shape[0];
-        int dim_k = w_shape[1];
-        int dim_n = out_count/dim_m;
-
+        auto out_dim = out_shape.size();
+        int dim_n = out_shape[out_dim-1];
+        int dim_m = out_count / dim_n;
+        int dim_k = weight_count/dim_n;
+        swap(dim_m, dim_n); // only support sparse * dense
 
         // auto m_dim_node = create_constant_node(n_device_type, ori_device_id, dim_m);
         // auto k_dim_node = create_constant_node(n_device_type, ori_device_id, dim_k);
