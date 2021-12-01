@@ -62,7 +62,7 @@ LanguageUnit_p cpu::BatchMatMulMkl::emit_function_body()
     // dst.
     auto src_md = memory::desc(src_dims, dt::f32, tag::abc);
     auto weights_md = memory::desc(weights_dims, dt::f32, tag::abc);
-    auto bias_md = memory::desc(bias_dims, dt::f32, tag::abc);
+    // auto bias_md = memory::desc(bias_dims, dt::f32, tag::abc);
     auto dst_md = memory::desc(dst_dims, dt::f32, tag::abc);
 
     auto src_mem = memory(src_md, my_engine, (void*)input0);

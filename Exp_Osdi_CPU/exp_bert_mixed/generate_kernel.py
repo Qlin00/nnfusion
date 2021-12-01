@@ -58,19 +58,17 @@ def check_config(config):
 default_kv = {}
 dense_default_kv = {}
 # default_kv["CHUNK_K_VALUE"] = 8
-default_kv["BLOCK_SIZE_M_VALUE"] = 64
-default_kv["BLOCK_SIZE_K_VALUE"] = 8
+default_kv["BLOCK_SIZE_M_VALUE"] = 128
+default_kv["BLOCK_SIZE_K_VALUE"] = 16
 default_kv["BLOCK_SIZE_N_VALUE"] = 128
-default_kv["THREAD_SIZE_M_VALUE"] = 8
-default_kv["THREAD_SIZE_K_VALUE"] = 4
+default_kv["THREAD_SIZE_M_VALUE"] = 32
 default_kv["THREAD_SIZE_N_VALUE"] = 8
 
 
-dense_default_kv["BLOCK_SIZE_M_VALUE"] = 64
+dense_default_kv["BLOCK_SIZE_M_VALUE"] = 128
 dense_default_kv["BLOCK_SIZE_K_VALUE"] = 16
 dense_default_kv["BLOCK_SIZE_N_VALUE"] = 64
-dense_default_kv["THREAD_SIZE_M_VALUE"] = 8
-dense_default_kv["THREAD_SIZE_K_VALUE"] = 4
+dense_default_kv["THREAD_SIZE_M_VALUE"] = 32
 dense_default_kv["THREAD_SIZE_N_VALUE"] = 8
 
 tune_kernel_cfg = {}
@@ -91,8 +89,12 @@ for tesaid in tesa:
         launch_cfg[tesaid].update(tune_kernel_cfg[str(tesaid)])
     if default_kv["BLOCK_SIZE_N_VALUE"] > tesa[tesaid]['weight'].size(0):
         launch_cfg[tesaid]['BLOCK_SIZE_N_VALUE'] = tesa[tesaid]['weight'].size(0)
-        print(tesaid)
-        print(default_kv["BLOCK_SIZE_N_VALUE"], "  ---> ",  launch_cfg[tesaid]['BLOCK_SIZE_N_VALUE'] )
+    # if dense_default_kv["BLOCK_SIZE_N_VALUE"] > tesa[tesaid]['weight'].size(0):
+    #     launch_cfg[tesaid]['BLOCK_SIZE_N_VALUE'] = tesa[tesaid]['weight'].size(0)
+        # print(tesaid)
+        # print(default_kv["BLOCK_SIZE_N_VALUE"], "  ---> ",  launch_cfg[tesaid]['BLOCK_SIZE_N_VALUE'] )
+    # if default_kv["BLOCK_SIZE_M_VALUE"] > tesa[tesaid]['weight'].size(0):
+    #     launch_cfg[tesaid]['BLOCK_SIZE_N_VALUE'] = tesa[tesaid]['weight'].size(0)
 
 sparse_block = {}
 for key in launch_cfg:
@@ -163,12 +165,13 @@ with open('nnfusion_cfg/config', 'r') as f:
             template['code'] = new_code + tesa_id * ' '
             template['kernel_identifier'] = kernel_id
             template['op_type'] = 'BlockQuantizeDotAdd'
-            print(kv['GLOBAL_M_VALUE'], kv['GLOBAL_K_VALUE'], kv['GLOBAL_N_VALUE'], kv['BLOCK_SIZE_M_VALUE'],kv['BLOCK_SIZE_K_VALUE'] , kv['BLOCK_SIZE_N_VALUE'], check_config(kv))
+            print(tesa_id, kv['GLOBAL_M_VALUE'], kv['GLOBAL_K_VALUE'], kv['GLOBAL_N_VALUE'], kv['BLOCK_SIZE_M_VALUE'],kv['BLOCK_SIZE_K_VALUE'] , kv['BLOCK_SIZE_N_VALUE'], check_config(kv))
             assert (kv['GLOBAL_N_VALUE'] % kv['BLOCK_SIZE_N_VALUE']) == 0
             assert (kv['GLOBAL_M_VALUE'] % kv['BLOCK_SIZE_M_VALUE']) == 0
             assert (kv['BLOCK_SIZE_N_VALUE'] % kv['THREAD_SIZE_N_VALUE']) == 0
             assert (kv['BLOCK_SIZE_M_VALUE'] % kv['THREAD_SIZE_M_VALUE']) == 0
-
+            if check_config(kv) == False:
+                continue
             template['gridDim'] = [1, 1]
             template['blockDim'] = [1, 1]
             f_path =  os.path.join(prefix, f"{tesa_id}.json")
@@ -192,8 +195,9 @@ with open('nnfusion_cfg/config', 'r') as f:
             kv['COMMENT_TAG'] = f"TESAID : {tesa_id}"
             print(torch_name)
             # print(kv["GLOBAL_M_VALUE"], kv["BLOCK_SIZE_M_VALUE"])
-            print(kv['GLOBAL_M_VALUE'], kv['GLOBAL_K_VALUE'], kv['GLOBAL_N_VALUE'], kv['BLOCK_SIZE_M_VALUE'],kv['BLOCK_SIZE_K_VALUE'] , kv['BLOCK_SIZE_N_VALUE'], check_config(kv))
-            
+            print(tesa_id, kv['GLOBAL_M_VALUE'], kv['GLOBAL_K_VALUE'], kv['GLOBAL_N_VALUE'], kv['BLOCK_SIZE_M_VALUE'],kv['BLOCK_SIZE_K_VALUE'] , kv['BLOCK_SIZE_N_VALUE'], check_config(kv))
+            if check_config(kv) == False:
+                continue
             if kv["GLOBAL_M_VALUE"] % kv["BLOCK_SIZE_M_VALUE"] != 0:
                 kv['BLOCK_SIZE_M_VALUE'] = kv["GLOBAL_M_VALUE"]
             if kv["GLOBAL_N_VALUE"] % kv["BLOCK_SIZE_N_VALUE"] != 0:
