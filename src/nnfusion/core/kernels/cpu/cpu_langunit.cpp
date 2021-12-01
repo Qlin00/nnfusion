@@ -11,7 +11,7 @@ LU_DEFINE(header::eigen_tensor,
           "#define EIGEN_USE_THREADS\n#include <unsupported/Eigen/CXX11/Tensor>\n");
 LU_DEFINE(header::eigen_utils, "#include \"eigen_utils.hpp\"\n");
 LU_DEFINE(header::eigen_spatial_convolution, "#include \"eigen_spatial_convolutions.h\"\n");
-LU_DEFINE(header::cblas, "#include \"mkl_cblas.h\"\n#define CBLAS_ENUM_DEFINED_H\n");
+LU_DEFINE(header::cblas, "#include \"mkl_cblas.h\"\n#define CBLAS_ENUM_DEFINED_H\n#include \"mkl.h\"\n");
 LU_DEFINE(header::mlas, "#include \"mlas.h\"\n");
 LU_DEFINE(header::mklsparse, "#include \"mkl.h\"\n#include \"mkl_spblas.h\"\n#include \"mkl_types.h\" \n")
 LU_DEFINE(header::dnnl, "#include \"dnnl.hpp\"\nusing namespace dnnl;\n");

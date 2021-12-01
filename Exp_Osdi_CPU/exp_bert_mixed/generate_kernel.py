@@ -9,6 +9,52 @@ from copy import deepcopy
 import numpy as np
 from SparGen.Common.Utils import *
 # need to replace for the right quantized values
+def check_config(config):
+    
+    ret = True
+
+    m = config['GLOBAL_M_VALUE']
+
+    n = config['GLOBAL_N_VALUE']
+
+    k = config['GLOBAL_K_VALUE']
+
+    block_size_m = config['BLOCK_SIZE_M_VALUE']
+
+    block_size_n = config['BLOCK_SIZE_N_VALUE']
+
+    block_size_k = config['BLOCK_SIZE_K_VALUE']
+
+    thread_size_m = config['THREAD_SIZE_M_VALUE']
+
+    thread_size_n = config['THREAD_SIZE_N_VALUE']
+
+    m_iter = thread_size_m / 16
+
+    n_iter = thread_size_n / 2
+
+    if m < block_size_m or n < block_size_n or k < block_size_k:
+
+        ret = False
+
+    if m % block_size_m != 0 or n % block_size_n != 0 or k % block_size_k != 0:
+
+        ret = False
+
+    if block_size_m % thread_size_m != 0 or block_size_n % thread_size_n != 0:
+
+        ret = False
+
+    if m_iter < 1 or n_iter < 1:
+
+        ret = False
+
+    if thread_size_m % 16 != 0 or thread_size_n % 2 != 0:
+
+        ret = False
+
+    return ret
+
 default_kv = {}
 dense_default_kv = {}
 # default_kv["CHUNK_K_VALUE"] = 8
@@ -117,6 +163,7 @@ with open('nnfusion_cfg/config', 'r') as f:
             template['code'] = new_code + tesa_id * ' '
             template['kernel_identifier'] = kernel_id
             template['op_type'] = 'BlockQuantizeDotAdd'
+            print(kv['GLOBAL_M_VALUE'], kv['GLOBAL_K_VALUE'], kv['GLOBAL_N_VALUE'], kv['BLOCK_SIZE_M_VALUE'],kv['BLOCK_SIZE_K_VALUE'] , kv['BLOCK_SIZE_N_VALUE'], check_config(kv))
             assert (kv['GLOBAL_N_VALUE'] % kv['BLOCK_SIZE_N_VALUE']) == 0
             assert (kv['GLOBAL_M_VALUE'] % kv['BLOCK_SIZE_M_VALUE']) == 0
             assert (kv['BLOCK_SIZE_N_VALUE'] % kv['THREAD_SIZE_N_VALUE']) == 0
@@ -144,7 +191,8 @@ with open('nnfusion_cfg/config', 'r') as f:
             kv.update(dense_default_kv)
             kv['COMMENT_TAG'] = f"TESAID : {tesa_id}"
             print(torch_name)
-            print(kv["GLOBAL_M_VALUE"], kv["BLOCK_SIZE_M_VALUE"])
+            # print(kv["GLOBAL_M_VALUE"], kv["BLOCK_SIZE_M_VALUE"])
+            print(kv['GLOBAL_M_VALUE'], kv['GLOBAL_K_VALUE'], kv['GLOBAL_N_VALUE'], kv['BLOCK_SIZE_M_VALUE'],kv['BLOCK_SIZE_K_VALUE'] , kv['BLOCK_SIZE_N_VALUE'], check_config(kv))
             
             if kv["GLOBAL_M_VALUE"] % kv["BLOCK_SIZE_M_VALUE"] != 0:
                 kv['BLOCK_SIZE_M_VALUE'] = kv["GLOBAL_M_VALUE"]

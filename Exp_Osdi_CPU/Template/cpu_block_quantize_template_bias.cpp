@@ -33,7 +33,7 @@ void MatrixMulCUDA_8bit_bias(float *input0, float *input1, float *input2, float 
     // uint8_t *a_buffer_whole = (uint8_t *)malloc(M * K * sizeof(uint8_t));
     uint8_t *b_buffer_whole = val;
 
-#pragma omp parallel for num_threads(4) collapse(2)
+#pragma omp parallel for collapse(2)
     for(int m_count = 0; m_count < M; m_count += m_inc){
         for(int k_count = 0; k_count < K; k_count += k_inc){
             int block_id = (m_count / M_BLOCKING) * K / K_BLOCKING + k_count / K_BLOCKING;
@@ -41,7 +41,7 @@ void MatrixMulCUDA_8bit_bias(float *input0, float *input1, float *input2, float 
         }
     }
 
-#pragma omp parallel for num_threads(4) collapse(2)
+#pragma omp parallel for collapse(2)
     for (int n_count=0;n_count<N;n_count+=n_inc){
         for(int m_count=0; m_count<M; m_count+=m_inc){
             int start_idx = row_ptr[n_count / N_BLOCKING], end_idx = row_ptr[(n_count / N_BLOCKING) + 1];
@@ -55,7 +55,7 @@ void MatrixMulCUDA_8bit_bias(float *input0, float *input1, float *input2, float 
         }
     }
 
-    #pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2)
     for(int i = 0; i < N; i += 1){
         for(int j = 0; j < M; j += 1){
             C_int8[i * M + j] = (uint8_t)C[i * M + j];
