@@ -86,6 +86,10 @@ if os.path.exists('tuning_cfg.json'):
     with open('tuning_cfg.json', 'r') as f:
         tune_kernel_cfg = json.load(f)
 
+if os.path.exists('rocm_bert_new.json'):
+    with open('rocm_bert_new.json', 'r') as f:
+        dense_tune_cfg = json.load(f)
+
 launch_cfg = {}
 tesa = torch.load('./tesa', map_location=device)
 for tesaid in tesa:
@@ -196,7 +200,10 @@ with open('nnfusion_cfg/config', 'r') as f:
             kv['COMMENT_TAG'] = f"TESAID : {tesa_id}"
             print(torch_name)
             print(kv["GLOBAL_M_VALUE"], kv["BLOCK_SIZE_M_VALUE"])
-            
+            key = f"{m},{k},{n}"
+            if key in dense_tune_cfg:
+                kv.update(dense_tune_cfg[key])
+
             if kv["GLOBAL_M_VALUE"] % kv["BLOCK_SIZE_M_VALUE"] != 0:
                 kv['BLOCK_SIZE_M_VALUE'] = kv["GLOBAL_M_VALUE"]
             if kv["GLOBAL_N_VALUE"] % kv["BLOCK_SIZE_N_VALUE"] != 0:
