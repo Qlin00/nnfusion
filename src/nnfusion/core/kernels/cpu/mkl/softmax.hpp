@@ -20,9 +20,11 @@ namespace nnfusion
 
 
             private:
-                nnfusion::Shape input_shape, filter_shape, output_shape, padding;
-
-                std::string dtype, data_format;
+                shared_ptr<KernelContext> kernel_ctx;
+                nnfusion::Shape input_shape, output_shape;
+                nnfusion::AxisSet axes;
+                uint32_t rank;
+                string output_type;
             };
         } // namespace cpu
     }     // namespace kernels

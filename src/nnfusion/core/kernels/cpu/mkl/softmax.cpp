@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 #include "softmax.hpp"
+#include "../cpu_kernel_emitter.hpp"
 #include "nnfusion/common/common.hpp"
 #include "nnfusion/core/operators/generic_op/generic_op.hpp"
 
@@ -11,24 +12,17 @@ using namespace nnfusion::kernels;
 cpu::SoftmaxMkl::SoftmaxMkl(shared_ptr<KernelContext> ctx)
     : MklKernelEmitter(ctx)
 {
-    auto conv = static_pointer_cast<op::Convolution>(ctx->gnode->get_op_ptr());
+    auto pad = static_pointer_cast<nnfusion::op::Softmax>(ctx->gnode->get_op_ptr());
+    input_shape = nnfusion::Shape(ctx->inputs[0]->get_shape());
+    output_shape = nnfusion::Shape(ctx->outputs[0]->get_shape());
+    axes = pad->get_axes();
+    output_type = ctx->outputs[0]->get_element_type().c_type_string();
 
-    input_shape = ctx->inputs[0]->get_shape();
-    filter_shape = ctx->inputs[1]->get_shape();
-    output_shape = ctx->outputs[0]->get_shape();
-    window_dilation_strides = conv->get_window_dilation_strides();
-    window_movement_strides = conv->get_window_movement_strides();
-    data_dilation_strides = conv->get_data_dilation_strides();
-    padding_below_diff = conv->get_padding_below();
-    padding_above_diff = conv->get_padding_above();
-    data_format = conv->get_data_format();
-    dtype = ctx->outputs[0]->get_element_type().c_type_string();
+    rank = static_cast<uint32_t>(input_shape.size());
 
     std::stringstream tag;
-    tag << "mkl_convolution_op_" << dtype << "_i" << join(input_shape, "_") << "_w"
-        << join(filter_shape, "_") << "_o" << join(output_shape, "_") << "_ws"
-        << join(window_movement_strides, "_") << "_wd" << join(window_dilation_strides, "_")
-        << "_pb" << join(padding_below_diff, "_") << "_pa" << join(padding_above_diff, "_");
+    tag << rank << "softmax_i" << join(input_shape, "_") << "softmax_o"
+        << join(output_shape, "_") << "_axes" << join(axes, "_");
     custom_tag = tag.str();
 }
 
@@ -51,36 +45,27 @@ LanguageUnit_p cpu::SoftmaxMkl::emit_function_body()
     // dnnl::stream engine_stream(engine);
 
     // Tensor dimensions.
-    const memory::dim N = @N@, // batch size
-            IC = 1000; // channels
-
     // Source (src) and destination (dst) tensors dimensions.
-    memory::dims src_dims = {N, IC};
+    memory::dims src_dims = {@in_shape@};
 
-    // Allocate buffer.
-    std::vector<float> src_data(product(src_dims));
 
-    std::generate(src_data.begin(), src_data.end(), []() {
-        static int i = 0;
-        return std::cos(i++ / 10.f);
-    });
 
     // Create src memory descriptor and memory object.
-    auto src_md = memory::desc(src_dims, dt::f32, tag::nc);
-    auto src_mem = memory(src_md, engine);
+    auto src_md = memory::desc(src_dims, dt::f32, tag::abcd);
+    auto src_mem = memory(src_md, my_engine, (void*)input0);
 
-    // Write data to memory object's handle.
-    write_to_dnnl_memory(src_data.data(), src_mem);
+    auto dst_md = memory::desc(src_dims, dt::f32, tag::abcd);
+    auto dst_mem = memory(dst_md, my_engine, (void*)output0);
 
     // Softmax axis.
-    const int axis = 1;
+    const int axis = @r_axis@;
 
     // Create operation descriptor.
     auto softmax_d
-            = softmax_forward::desc(prop_kind::forward_training, src_md, axis);
+            = softmax_forward::desc(prop_kind::forward_inference, src_md, axis);
 
     // Create primitive descriptor.
-    auto softmax_pd = softmax_forward::primitive_desc(softmax_d, engine);
+    auto softmax_pd = softmax_forward::primitive_desc(softmax_d, my_engine);
 
     // Create the primitive.
     auto softmax_prim = softmax_forward(softmax_pd);
@@ -88,7 +73,7 @@ LanguageUnit_p cpu::SoftmaxMkl::emit_function_body()
     // Primitive arguments. Set up in-place execution by assigning src as DST.
     std::unordered_map<int, memory> softmax_args;
     softmax_args.insert({DNNL_ARG_SRC, src_mem});
-    softmax_args.insert({DNNL_ARG_DST, src_mem});
+    softmax_args.insert({DNNL_ARG_DST, dst_mem});
 
     // Primitive execution.
     softmax_prim.execute(engine_stream, softmax_args);
@@ -96,11 +81,9 @@ LanguageUnit_p cpu::SoftmaxMkl::emit_function_body()
     // Wait for the computation to finalize.
     engine_stream.wait();
 
-    // Read data from memory object's handle.
-    read_from_dnnl_memory(src_data.data(), src_mem);
-
 )",
-        {{"batch_count", batch_count}});
+        {{"r_axis", 3},
+         {'in_shape':join(input_shape)}});
 
     lu << code;
 
