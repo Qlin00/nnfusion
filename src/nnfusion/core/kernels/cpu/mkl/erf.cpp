@@ -1,19 +1,16 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-#include "power.hpp"
+#include "erf.hpp"
 
 using namespace nnfusion;
 using namespace nnfusion::kernels;
 
-cpu::PowerMkl::PowerMkl(shared_ptr<KernelContext> ctx)
+cpu::ErfMkl::ErfMkl(shared_ptr<KernelContext> ctx)
     : MklKernelEmitter(ctx)
 {
-    auto add_op = static_pointer_cast<nnfusion::op::Power>(ctx->gnode->get_op_ptr());
-
     
     arg0_shape = nnfusion::Shape(ctx->inputs[0]->get_shape());
-    arg1_shape = nnfusion::Shape(ctx->inputs[1]->get_shape());
     out_shape = nnfusion::Shape(ctx->outputs[0]->get_shape());
     dtype = nnfusion::element::Type(ctx->outputs[0]->get_element_type());
     // assert(arg0_shape)
@@ -24,7 +21,7 @@ cpu::PowerMkl::PowerMkl(shared_ptr<KernelContext> ctx)
     custom_tag = tag.str();
 }
 
-LanguageUnit_p cpu::PowerMkl::emit_function_body()
+LanguageUnit_p cpu::ErfMkl::emit_function_body()
 {
     LanguageUnit_p _lu(new LanguageUnit(get_function_name()));
     auto& lu = *_lu;
@@ -34,12 +31,12 @@ LanguageUnit_p cpu::PowerMkl::emit_function_body()
     }
     // function signature:
     // void kernel(mcontext->dtypes[0]* input0, m_context->dtypes[0]* input1, m_context->dtypes[2]* output0)
-    lu << "vsPow("<<out_count<<", input0, input1, output0);\n";
+    lu << "vserf("<<out_count<<", input0, output0);\n";
 
     return _lu;
 }
 
-LanguageUnit_p cpu::PowerMkl::emit_dependency()
+LanguageUnit_p cpu::ErfMkl::emit_dependency()
 {
     LanguageUnit_p _lu(new LanguageUnit(get_function_name() + "_dep"));
     _lu->require(header::cblas);
@@ -51,6 +48,6 @@ LanguageUnit_p cpu::PowerMkl::emit_dependency()
 }
 
 REGISTER_KERNEL_EMITTER(
-    "Power",                                                                   // op_name
+    "Erf",                                                                   // op_name
     Device(GENERIC_CPU).TypeConstraint(element::f32).Tag("mkl").Priority(9), // attrs
-    cpu::PowerMkl)
+    cpu::ErfMkl)
