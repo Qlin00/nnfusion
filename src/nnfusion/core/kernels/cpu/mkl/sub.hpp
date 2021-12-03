@@ -23,7 +23,7 @@ namespace nnfusion
                 nnfusion::Shape arg0_shape, arg1_shape;
                 nnfusion::Shape out_shape;
                 nnfusion::element::Type dtype;
-                bool use_sgemm_batch = false;
+
             };
         } // namespace cpu
     }     // namespace kernels

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-#include "softmax.hpp"
+#include "reshape.hpp"
 #include "../cpu_kernel_emitter.hpp"
 #include "nnfusion/common/common.hpp"
 #include "nnfusion/core/operators/generic_op/generic_op.hpp"
@@ -20,7 +20,7 @@ cpu::ReshapeMkl::ReshapeMkl(shared_ptr<KernelContext> ctx)
     output_type = ctx->outputs[0]->get_element_type().c_type_string();
 
     std::stringstream tag;
-    tag << rank << "sum_i" << join(input_shape, "_") << "sum_o"
+    tag << "sum_i" << join(input_shape, "_") << "sum_o"
         << join(output_shape, "_") << "_axes" << join(axes, "_");
     custom_tag = tag.str();
 }
@@ -87,7 +87,7 @@ LanguageUnit_p cpu::ReshapeMkl::emit_function_body()
 
     )",
         {
-         {'in_shape', join(input_shape)}});
+         {"in_shape", join(input_shape)}});
 
     lu << code;
 

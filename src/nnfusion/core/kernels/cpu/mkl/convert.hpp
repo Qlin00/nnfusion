@@ -23,7 +23,7 @@ namespace nnfusion
                 shared_ptr<KernelContext> kernel_ctx;
                 nnfusion::Shape input_shape, output_shape;
                 nnfusion::AxisSet axes;
-
+                string output_type, input_type;
             };
         } // namespace cpu
     }     // namespace kernels

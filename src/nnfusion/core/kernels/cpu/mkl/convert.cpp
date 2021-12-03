@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-#include "softmax.hpp"
+#include "convert.hpp"
 #include "../cpu_kernel_emitter.hpp"
 #include "nnfusion/common/common.hpp"
 #include "nnfusion/core/operators/generic_op/generic_op.hpp"
@@ -15,14 +15,9 @@ cpu::ConvertMkl::ConvertMkl(shared_ptr<KernelContext> ctx)
     auto pad = static_pointer_cast<nnfusion::op::Sum>(ctx->gnode->get_op_ptr());
     input_shape = nnfusion::Shape(ctx->inputs[0]->get_shape());
     output_shape = nnfusion::Shape(ctx->outputs[0]->get_shape());
-    axes = pad->get_reduction_axes();
+
     input_type = ctx->inputs[0]->get_element_type().c_type_string();
     output_type = ctx->outputs[0]->get_element_type().c_type_string();
-
-    std::stringstream tag;
-    tag << rank << "sum_i" << join(input_shape, "_") << "sum_o"
-        << join(output_shape, "_") << "_axes" << join(axes, "_");
-    custom_tag = tag.str();
 }
 
 LanguageUnit_p cpu::ConvertMkl::emit_function_body()
@@ -83,7 +78,7 @@ LanguageUnit_p cpu::ConvertMkl::emit_function_body()
 
     )",
         {
-         {'in_shape', join(input_shape)}});
+         {"in_shape", join(input_shape)}});
 
     lu << code;
 
