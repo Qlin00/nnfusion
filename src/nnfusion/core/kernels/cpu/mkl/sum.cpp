@@ -9,24 +9,23 @@
 using namespace nnfusion;
 using namespace nnfusion::kernels;
 
-cpu::SoftmaxMkl::SoftmaxMkl(shared_ptr<KernelContext> ctx)
+cpu::SumMkl::SumMkl(shared_ptr<KernelContext> ctx)
     : MklKernelEmitter(ctx)
 {
-    auto pad = static_pointer_cast<nnfusion::op::Softmax>(ctx->gnode->get_op_ptr());
+    auto pad = static_pointer_cast<nnfusion::op::Sum>(ctx->gnode->get_op_ptr());
     input_shape = nnfusion::Shape(ctx->inputs[0]->get_shape());
     output_shape = nnfusion::Shape(ctx->outputs[0]->get_shape());
-    axes = pad->get_axes();
+    axes = pad->get_reduction_axes();
+    input_type = ctx->inputs[0]->get_element_type().c_type_string();
     output_type = ctx->outputs[0]->get_element_type().c_type_string();
 
-    rank = static_cast<uint32_t>(input_shape.size());
-
     std::stringstream tag;
-    tag << rank << "softmax_i" << join(input_shape, "_") << "softmax_o"
+    tag << rank << "sum_i" << join(input_shape, "_") << "sum_o"
         << join(output_shape, "_") << "_axes" << join(axes, "_");
     custom_tag = tag.str();
 }
 
-LanguageUnit_p cpu::SoftmaxMkl::emit_function_body()
+LanguageUnit_p cpu::SumMkl::emit_function_body()
 {
 
     // emit code
@@ -37,52 +36,48 @@ LanguageUnit_p cpu::SoftmaxMkl::emit_function_body()
 
     auto code = op::create_code_from_template(
         R"(
-
     // Create execution dnnl::engine.
     // dnnl::engine engine(engine_kind, 0);
 
     // Create dnnl::stream.
     // dnnl::stream engine_stream(engine);
 
-    // Tensor dimensions.
+
     // Source (src) and destination (dst) tensors dimensions.
     memory::dims src_dims = {@in_shape@};
+    memory::dims dst_dims = {@out_shape@};
 
+    // Create src and dst memory descriptors and memory objects.
+    auto src_md = memory::desc(src_dims, dt::f32, tag::any);
+    auto dst_md = memory::desc(dst_dims, dt::f32, tag::any);
 
+    auto src_mem = memory(src_md, my_engine, input0);
+    auto dst_mem = memory(dst_md, my_engine, output0);
 
-    // Create src memory descriptor and memory object.
-    auto src_md = memory::desc(src_dims, dt::f32, tag::abcd);
-    auto src_mem = memory(src_md, my_engine, (void*)input0);
-
-    auto dst_md = memory::desc(src_dims, dt::f32, tag::abcd);
-    auto dst_mem = memory(dst_md, my_engine, (void*)output0);
-
-    // Softmax axis.
-    const int axis = @r_axis@;
 
     // Create operation descriptor.
-    auto softmax_d
-            = softmax_forward::desc(prop_kind::forward_inference, src_md, axis);
+    auto reduction_d = reduction::desc(
+            algorithm::reduction_sum, src_md, dst_md, 0.f, 0.f);
 
     // Create primitive descriptor.
-    auto softmax_pd = softmax_forward::primitive_desc(softmax_d, my_engine);
+    auto reduction_pd = reduction::primitive_desc(reduction_d, my_engine);
 
     // Create the primitive.
-    auto softmax_prim = softmax_forward(softmax_pd);
+    auto reduction_prim = reduction(reduction_pd);
 
-    // Primitive arguments. Set up in-place execution by assigning src as DST.
-    std::unordered_map<int, memory> softmax_args;
-    softmax_args.insert({DNNL_ARG_SRC, src_mem});
-    softmax_args.insert({DNNL_ARG_DST, dst_mem});
+    // Primitive arguments.
+    std::unordered_map<int, memory> reduction_args;
+    reduction_args.insert({DNNL_ARG_SRC, src_mem});
+    reduction_args.insert({DNNL_ARG_DST, dst_mem});
 
-    // Primitive execution.
-    softmax_prim.execute(engine_stream, softmax_args);
+    // Primitive execution: Reduction (Sum).
+    reduction_prim.execute(engine_stream, reduction_args);
 
     // Wait for the computation to finalize.
     engine_stream.wait();
 
-)",
-        {{"r_axis", 3},
+    )",
+        {{"out_shape", join(output_shape)},
          {'in_shape', join(input_shape)}});
 
     lu << code;
@@ -90,7 +85,7 @@ LanguageUnit_p cpu::SoftmaxMkl::emit_function_body()
     return _lu;
 }
 
-LanguageUnit_p cpu::SoftmaxMkl::emit_dependency()
+LanguageUnit_p cpu::SumMkl::emit_dependency()
 {
     LanguageUnit_p _lu(new LanguageUnit(get_function_name() + "_dep"));
     _lu->require(header::dnnl);
@@ -99,6 +94,6 @@ LanguageUnit_p cpu::SoftmaxMkl::emit_dependency()
 }
 
 REGISTER_KERNEL_EMITTER(
-    "Softmax",                                                            // op_name
+    "Sum",                                                            // op_name
     Device(GENERIC_CPU).TypeConstraint(element::f32).Tag("mkl").Priority(7), // attrs
-    cpu::SoftmaxMkl)                                                     // constructor
+    cpu::SumMkl)                                                     // constructor
