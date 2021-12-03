@@ -83,7 +83,7 @@ LanguageUnit_p cpu::SoftmaxMkl::emit_function_body()
 
 )",
         {{"r_axis", 3},
-         {'in_shape', join(input_shape)}});
+         {"in_shape", join(input_shape)}});
 
     lu << code;
 

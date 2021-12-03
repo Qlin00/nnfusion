@@ -15,7 +15,6 @@ cpu::ReshapeMkl::ReshapeMkl(shared_ptr<KernelContext> ctx)
     auto pad = static_pointer_cast<nnfusion::op::Sum>(ctx->gnode->get_op_ptr());
     input_shape = nnfusion::Shape(ctx->inputs[0]->get_shape());
     output_shape = nnfusion::Shape(ctx->outputs[0]->get_shape());
-    axes = pad->get_reduction_axes();
     input_type = ctx->inputs[0]->get_element_type().c_type_string();
     output_type = ctx->outputs[0]->get_element_type().c_type_string();
 
@@ -104,5 +103,10 @@ LanguageUnit_p cpu::ReshapeMkl::emit_dependency()
 
 REGISTER_KERNEL_EMITTER(
     "Reshape",                                                            // op_name
-    Device(GENERIC_CPU).TypeConstraint(element::f32).Tag("mkl").Priority(7), // attrs
-    cpu::ReshapeMkl)                                                     // constructor
+    Device(GENERIC_CPU).TypeConstraint(element::f32).Tag("mkl").Priority(9), // attrs
+    cpu::ReshapeMkl)                                                    // constructor
+
+REGISTER_KERNEL_EMITTER(
+    "Reshape",                                                            // op_name
+    Device(GENERIC_CPU).TypeConstraint(element::i32).Tag("mkl").Priority(9), // attrs
+    cpu::ReshapeMkl)
