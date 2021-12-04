@@ -25,7 +25,9 @@ LanguageUnit_p cpu::SumMkl::emit_function_body()
     LanguageUnit_p _lu(new LanguageUnit(get_function_name()));
     auto& lu = *_lu;
 
-
+    auto new_out_shape = input_shape;
+    int sum_dim = 2;
+    new_out_shape[2] = 1;
 
     auto code = op::create_code_from_template(
         R"(
@@ -41,8 +43,8 @@ LanguageUnit_p cpu::SumMkl::emit_function_body()
     memory::dims dst_dims = {@out_shape@};
 
     // Create src and dst memory descriptors and memory objects.
-    auto src_md = memory::desc(src_dims, dt::f32, tag::any);
-    auto dst_md = memory::desc(dst_dims, dt::f32, tag::any);
+    auto src_md = memory::desc(src_dims, dt::f32, tag::abc);
+    auto dst_md = memory::desc(dst_dims, dt::f32, tag::abc);
 
     auto src_mem = memory(src_md, my_engine, input0);
     auto dst_mem = memory(dst_md, my_engine, output0);
@@ -70,7 +72,7 @@ LanguageUnit_p cpu::SumMkl::emit_function_body()
     engine_stream.wait();
 
     )",
-        {{"out_shape", join(output_shape)},
+        {{"out_shape", join(new_out_shape)},
          {"in_shape", join(input_shape)}});
 
     lu << code;

@@ -24,6 +24,8 @@ namespace nnfusion
                 nnfusion::Shape input_shape, output_shape;
                 nnfusion::AxisSet axes;
                 string output_type, input_type;
+                string in_layout, out_layout;
+                bool is_copy;
             };
         } // namespace cpu
     }     // namespace kernels

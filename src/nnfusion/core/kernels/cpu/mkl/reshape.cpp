@@ -12,9 +12,28 @@ using namespace nnfusion::kernels;
 cpu::ReshapeMkl::ReshapeMkl(shared_ptr<KernelContext> ctx)
     : MklKernelEmitter(ctx)
 {
-    auto pad = static_pointer_cast<nnfusion::op::Sum>(ctx->gnode->get_op_ptr());
+    vector<char> layouts({'a', 'b', 'c', 'd', 'e'});
+    auto op = static_pointer_cast<nnfusion::op::Reshape>(ctx->gnode->get_op_ptr());
     input_shape = nnfusion::Shape(ctx->inputs[0]->get_shape());
     output_shape = nnfusion::Shape(ctx->outputs[0]->get_shape());
+    size_t output_size = output_shape.size();
+    if (!op->get_is_layout_change() || output_size < 2){
+        input_shape = output_shape;
+        in_layout = "";
+        for(int i=0;i<output_size;i++)
+            in_layout += layouts[i];
+        out_layout = in_layout;
+        is_copy=true;
+    }
+    else{
+        is_copy=false;
+        for(int i=0;i<output_size;i++)
+            in_layout += layouts[i];
+        // FixMe: currently only work on bert model
+        output_shape = input_shape;
+        out_layout = "acbd";
+        
+    }
     input_type = ctx->inputs[0]->get_element_type().c_type_string();
     output_type = ctx->outputs[0]->get_element_type().c_type_string();
 
@@ -46,14 +65,14 @@ LanguageUnit_p cpu::ReshapeMkl::emit_function_body()
 
     // Source (src) and destination (dst) tensors dimensions.
     memory::dims src_dims = {@in_shape@};
-    memory::dims out_dims = {@in_shape@};
+    memory::dims out_dims = {@out_shape@};
     // Allocate buffers.
     std::vector<float> src_data(product(src_dims));
  
-
+    bool is_copy = @is_copy@;
     // Create memory descriptors and memory objects for src and dst.
-    auto src_md = memory::desc(src_dims, dt::f32, tag::abcd);
-    auto dst_md = memory::desc(src_dims, dt::f32, tag::acbd); 
+    auto src_md = memory::desc(src_dims, dt::f32, tag::@in_layout@);
+    auto dst_md = memory::desc(src_dims, dt::f32, tag::@out_layout@); 
 
     auto src_mem = memory(src_md, engine, (void*)input0);
     auto dst_mem = memory(dst_md, engine, (void*)output0);
@@ -86,7 +105,12 @@ LanguageUnit_p cpu::ReshapeMkl::emit_function_body()
 
     )",
         {
-         {"in_shape", join(input_shape)}});
+         {"in_shape", join(input_shape)},
+         {"out_shape", join(output_shape)},
+         {"in_layout", in_layout},
+         {"out_layout", out_layout},
+         {"is_copy", is_copy}
+         });
 
     lu << code;
 
