@@ -144,19 +144,19 @@ LanguageUnit_p cuda::SparseDot::emit_function_body()
     return _lu;
 }
 
-LanguageUnit_p cuda::SparseDot::emit_comments()
-{
-    auto& ctx = m_context;
+// LanguageUnit_p cuda::SparseDot::emit_comments()
+// {
+//     auto& ctx = m_context;
 
 
-    LanguageUnit_p _lu(new LanguageUnit(get_function_name()));
-    auto& lu = *_lu;
+//     LanguageUnit_p _lu(new LanguageUnit(get_function_name()));
+//     auto& lu = *_lu;
 
 
-    lu<<"//SparseDot function commments here\n";
-    //lu.block_end();
-    return _lu;
-}
+//     lu<<"//SparseDot function commments here\n";
+//     //lu.block_end();
+//     return _lu;
+// }
 
 LanguageUnit_p cuda::SparseDot::emit_dependency()
 {

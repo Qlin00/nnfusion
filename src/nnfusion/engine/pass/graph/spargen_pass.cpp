@@ -567,22 +567,25 @@ private:
             out_count *= i;
         auto weight_data_ptr = weight_constant->get_data_ptr();
         assert(weight_data_ptr!=nullptr);
-        float sparsity_ratio = get_sparsity_ratio<float>(static_cast<const float*>(weight_data_ptr),
-                                              nnfusion::shape_size(w_shape),
-                                              sparse_threshold);
-        std::cout << "Sparsity Ratio  "<< sparsity_ratio<<std::endl;
-        std::shared_ptr<vector<int32_t>> row_idx, col_idx;
-        std::shared_ptr<vector<float>> values;
-        std::tie(row_idx, col_idx, values) = convert_to_csr<float>(
-        static_cast<const float*>(weight_data_ptr), w_shape, sparse_threshold);
-        int nnz = values->size();
-        // cause that sputnik kernel only support the sparse matric * dense matrix
         auto out_dim = out_shape.size();
         int dim_n = out_shape[out_dim-1];
         int dim_m = out_count / dim_n;
         int dim_k = weight_count/dim_n;
         swap(dim_m, dim_n); // only support sparse * dense
+        nnfusion::Shape new_w_shape(vector<size_t>({dim_m, dim_k}));
+        assert(nnfusion::shape_size(w_shape)==nnfusion::shape_size(new_w_shape));
 
+        float sparsity_ratio = get_sparsity_ratio<float>(static_cast<const float*>(weight_data_ptr),
+                                              nnfusion::shape_size(new_w_shape),
+                                              sparse_threshold);
+        std::cout << "Sparsity Ratio  "<< sparsity_ratio<<std::endl;
+        std::shared_ptr<vector<int32_t>> row_idx, col_idx;
+        std::shared_ptr<vector<float>> values;
+        std::tie(row_idx, col_idx, values) = convert_to_csr<float>(
+        static_cast<const float*>(weight_data_ptr), new_w_shape, sparse_threshold);
+        int nnz = values->size();
+        // cause that sputnik kernel only support the sparse matric * dense matrix
+        
         auto swizzle_idx = SortedRowSwizzle(*row_idx);
         // auto m_dim_node = create_constant_node(n_device_type, ori_device_id, dim_m);
         // auto k_dim_node = create_constant_node(n_device_type, ori_device_id, dim_k);

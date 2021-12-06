@@ -57,19 +57,19 @@ LanguageUnit_p cuda::SputnikDot::emit_function_body()
     return _lu;
 }
 
-LanguageUnit_p cuda::SputnikDot::emit_comments()
-{
-    auto& ctx = m_context;
+// LanguageUnit_p cuda::SputnikDot::emit_comments()
+// {
+//     auto& ctx = m_context;
 
 
-    LanguageUnit_p _lu(new LanguageUnit(get_function_name()));
-    auto& lu = *_lu;
+//     LanguageUnit_p _lu(new LanguageUnit(get_function_name()));
+//     auto& lu = *_lu;
 
 
-    lu<<"//SputnikDot function commments here\n";
-    //lu.block_end();
-    return _lu;
-}
+//     lu<<"//SputnikDot function commments here\n";
+//     //lu.block_end();
+//     return _lu;
+// }
 
 LanguageUnit_p cuda::SputnikDot::emit_dependency()
 {
