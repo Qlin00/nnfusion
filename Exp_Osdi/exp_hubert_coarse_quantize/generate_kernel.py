@@ -71,6 +71,7 @@ with open('nnfusion_cfg/config', 'r') as f:
         m = np.prod(in_shape[:-1])
         k = in_shape[-1]
         n = weight_shape[0]
+        print('mkn: ', m, k, n)
         kv["M_GLOBAL_VALUE"] = np.prod(in_shape[:-1])
         kv["K_GLOBAL_VALUE"] = in_shape[-1]
         kv["N_GLOBAL_VALUE"] = weight_shape[0]
