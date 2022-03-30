@@ -332,7 +332,10 @@ if __name__ == '__main__':
     for kernel in kernels:
         op_type = kernel["op_type"]
 
-        # parse and clean up the cuda code to get some specific information
+        # parse and clean up the cuda
+        # code to get some specific information
+        # import ipdb; ipdb.set_trace()
+        
         func_body, shared_memory, new_code, sync_code, signature = code_parse(
             kernel["code"], param_list[op_type])
 

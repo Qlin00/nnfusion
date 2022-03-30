@@ -1929,6 +1929,11 @@ private:
         std::cout << "In SparGen BlockDotOptimize" << std::endl;
         assert(kernel_entry != nullptr);
         assert(dot_node != nullptr);
+        std::cout << "Fusible Nodes:";
+        for(int i=0;i<fusible_nodes.size();i++){
+            std::cout<<" "<<fusible_nodes[i]->get_op_type();
+        }
+        std::cout<<std::endl;
 
         bool has_constant = false;
         bool has_bias = false;
@@ -2022,7 +2027,24 @@ private:
 
         auto activate_node = dot_node->get_in_edge(0)->get_src();
         GNodeVector input_gv({activate_node, weight_values_node, weight_row_node, weight_col_node});
+        
+        printf("VALUE_OUTPUT of %d row: ", tesaid);
+        for(int i=0;i<min(10, (int)row_count/4); i++){
+            printf(" %d", *(int *)(&block_weight_rows[i]));
+        }
+        printf("\n");
+        printf("VALUE_OUTPUT of %d col: ", tesaid);
+        for(int i=0;i<min(10, (int)col_count/4); i++){
+            printf(" %d", *(int*)(&block_weight_cols[i]));
+        }
+        printf("\n");
+        printf("VALUE_OUTPUT of %d values: ", tesaid);
+        for(int i=0;i<min(10, (int)value_count/4); i++){
+            printf(" %f", block_weight_values[i]);
+        }
+        printf("\n");
 
+        
         m_graph->add_node(weight_values_node);
         m_graph->add_node(weight_row_node);
         m_graph->add_node(weight_col_node);
