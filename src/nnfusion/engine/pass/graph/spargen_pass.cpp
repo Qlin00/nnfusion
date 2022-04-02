@@ -2027,22 +2027,36 @@ private:
 
         auto activate_node = dot_node->get_in_edge(0)->get_src();
         GNodeVector input_gv({activate_node, weight_values_node, weight_row_node, weight_col_node});
-        
+        float tmp_float_sum = 0.0;
+        int tmp_int_sum = 0;
         printf("VALUE_OUTPUT of %d row: ", tesaid);
         for(int i=0;i<min(10, (int)row_count/4); i++){
             printf(" %d", *(int *)(&block_weight_rows[i]));
         }
-        printf("\n");
+        for(int i=0; i<(int)row_count/4; i++){
+            tmp_int_sum += *(int *)(&block_weight_rows[i]);
+        }
+        printf("  Sum: %d\n", tmp_int_sum);
+
+        tmp_int_sum = 0;
         printf("VALUE_OUTPUT of %d col: ", tesaid);
         for(int i=0;i<min(10, (int)col_count/4); i++){
             printf(" %d", *(int*)(&block_weight_cols[i]));
         }
-        printf("\n");
+        for(int i=0;i<(int)col_count/4; i++){
+            tmp_int_sum += *(int*)(&block_weight_cols[i]);
+        }
+        printf("   Sum: %d\n", tmp_int_sum);
+
+        tmp_float_sum = 0;
         printf("VALUE_OUTPUT of %d values: ", tesaid);
         for(int i=0;i<min(10, (int)value_count/4); i++){
             printf(" %f", block_weight_values[i]);
         }
-        printf("\n");
+        for(int i=0;i<(int)value_count/4; i++){
+            tmp_float_sum += block_weight_values[i];
+        }
+        printf("  Sum: %f\n", tmp_float_sum);
 
         
         m_graph->add_node(weight_values_node);
@@ -2063,11 +2077,22 @@ private:
             // TODO also load the correct bias weights
             auto bias = std::make_shared<op::Constant>(
                 from<float>(), bias_shape, static_cast<void*>(bias_data));
-            if (this->bias_data_path[tesaid].size() > 0)
-            {
-                bias_count = load_from_file(
-                    (char*)bias_data, sizeof(float) * weight_count, this->bias_data_path[tesaid]);
+
+            tmp_float_sum = 0.0;
+            printf("VALUE_OUTPUT of %d bias: ", tesaid);
+            for(int i=0;i<min(10, (int)bias_count/4); i++){
+                printf(" %f", bias_data[i]);
             }
+            for(int i=0;i<(int)bias_count/4; i++){
+                tmp_float_sum += bias_data[i];
+            }
+            printf("   Sum: %f\n", tmp_float_sum);
+
+            // if (this->bias_data_path[tesaid].size() > 0)
+            // {
+            //     bias_count = load_from_file(
+            //         (char*)bias_data, sizeof(float) * weight_count, this->bias_data_path[tesaid]);
+            // }
             auto bias_node = std::make_shared<GNode>(bias, GNodeVector({}));
             bias->revalidate_and_infer_types(bias_node->shared_from_this());
             bias_node->Set<NNFusion_DeviceType>("DeviceType", move(n_device_type));
