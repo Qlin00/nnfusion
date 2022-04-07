@@ -150,13 +150,13 @@ std::pair<std::vector<std::shared_ptr<GNode>>, std::vector<std::shared_ptr<Tunin
         NNFUSION_CHECK(n_device_type != UNKNOWN);
 
         // filter ops not in TuningList
-        if (tuning_list.find(gnode->get_op_type()) == tuning_list.end())
+        if (!tuning_list.empty() && tuning_list.find(gnode->get_op_type()) == tuning_list.end())
         {
             continue;
         }
 
         // filter ops in BlockList
-        if (block_list.find(gnode->get_op_type()) != block_list.end())
+        if (!block_list.empty() && block_list.find(gnode->get_op_type()) != block_list.end())
         {
             continue;
         }
@@ -252,26 +252,34 @@ std::pair<std::vector<std::shared_ptr<GNode>>, std::vector<std::shared_ptr<Tunin
 
 bool KernelTuning::parse_block_list()
 {
+    BlockList.clear();
     auto blocklist_str = FLAGS_ftuning_blocklist;
     stringstream ss(blocklist_str);
     while (ss.good())
     {
         string substr;
         getline(ss, substr, ',');
-        BlockList.insert(substr);
+        if (!substr.empty())
+        {
+            BlockList.insert(substr);
+        }
     }
     NNFUSION_LOG(INFO) << "Kernel Tuning BlockList: " << join(BlockList, ", ");
 }
 
 bool KernelTuning::parse_tuning_list()
 {
+    TuningList.clear();
     auto tuninglist_str = FLAGS_ftuning_list;
     stringstream ss(tuninglist_str);
     while (ss.good())
     {
         string substr;
         getline(ss, substr, ',');
-        TuningList.insert(substr);
+        if (!substr.empty())
+        {
+            TuningList.insert(substr);
+        }
     }
     NNFUSION_LOG(INFO) << "Kernel Tuning List: " << join(TuningList, ", ");
 }
