@@ -1280,9 +1280,9 @@ private:
         memset(scale_integer_data, 0, sizeof(float));
         float* scale_shift_data = (float*)malloc(sizeof(float));
         memset(scale_shift_data, 0, sizeof(float));
-
+        size_t load_w_count, load_bias_count;
         
-        load_from_file(
+        load_w_count = load_from_file(
             (char*)weight_values, sizeof(float) * weight_count, this->weight_data_path[tesaid]);
         load_from_file((char*)scale_integer_data, sizeof(float), this->scale_integer[tesaid]);
         load_from_file((char*)scale_shift_data, sizeof(float), this->scale_shift[tesaid]);
@@ -1293,7 +1293,7 @@ private:
         memset(bias_data, 0, sizeof(float) * weight_count);
         auto dense_op = std::dynamic_pointer_cast<op::Dot>(dot_node->get_op_ptr());
         auto weight_values_node =
-            create_constant_node(n_device_type, ori_device_id, w_shape, weight_values);
+            create_constant_node(n_device_type, ori_device_id, vector<size_t>({1 + load_w_count/sizeof(float)}), weight_values);
 
         auto scale_integer_node =
             create_constant_node(n_device_type, ori_device_id, *((int*)scale_integer_data));
@@ -1318,22 +1318,24 @@ private:
         // Handle the fuse option here
         if (has_bias)
         {
+            load_bias_count = w_shape[0] * sizeof(float);
+            if (this->bias_data_path[tesaid].size() > 0)
+            {
+                load_bias_count =load_from_file(
+                    (char*)bias_data, sizeof(float) * weight_count, this->bias_data_path[tesaid]);
+            }
             std::cout<<"Has bias: " << has_bias<<std::endl;
             nnfusion::Shape bias_shape;
             if(get_device_str(n_device_type)=="GENERIC_CPU"){
                 bias_shape = nnfusion::Shape(vector<size_t>({1+out_count}));
             }else{
                 bias_shape = nnfusion::Shape(vector<size_t>(
-                    {weight_count})); // TODO currently the memory space for bias is wasted
+                    {1 + load_bias_count/sizeof(float)})); // TODO currently the memory space for bias is wasted
             }
             // TODO also load the correct bias weights
             auto bias = std::make_shared<op::Constant>(
                 from<float>(), bias_shape, static_cast<void*>(bias_data));
-            if (this->bias_data_path[tesaid].size() > 0)
-            {
-                load_from_file(
-                    (char*)bias_data, sizeof(float) * weight_count, this->bias_data_path[tesaid]);
-            }
+
             auto bias_node = std::make_shared<GNode>(bias, GNodeVector({}));
             bias->revalidate_and_infer_types(bias_node->shared_from_this());
             bias_node->Set<NNFusion_DeviceType>("DeviceType", move(n_device_type));
