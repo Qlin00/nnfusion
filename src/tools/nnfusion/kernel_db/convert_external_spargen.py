@@ -150,7 +150,8 @@ def gen_config(op_type, kernel, shared_memory, num_sync):
             input_key = "arg%d_shape" % i 
             if input_key in kernel["parameters"]:
                 config["in_shape"].append(kernel["parameters"][input_key])
-        config["out_shape"] = [kernel["parameters"]["out_shape"]]
+        
+        config["out_shape"] = [kernel["parameters"]["output_shape"]]
         # import pdb; pdb.set_trace()
         # in_paranames = ','.join(['float* __restrict__ input%d'%i for i in range(len(config["in_shape"]))])
         input_paras = ['float* __restrict__ input%d'%i for i in range(len(param_list[op_type]['symbol'])-1)]
