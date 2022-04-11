@@ -1445,10 +1445,10 @@ private:
         float * weight_data_ptr = (float*) malloc(sizeof(float)*weight_count);
         memset(weight_data_ptr, 0, sizeof(float)* weight_count);
         load_w_count = load_from_file((char*)weight_data_ptr, sizeof(float)*weight_count, this->weight_data_path[tesaid]);
-        // auto q_weight_node =
-        //     create_constant_node(dt, ori_device_id, vector<size_t>({1 + load_w_count/sizeof(float)}), weight_data_ptr);
         auto q_weight_node =
-                    create_constant_node(dt, ori_device_id, weight_shape, weight_data_ptr);
+            create_constant_node(dt, ori_device_id, vector<size_t>({1 + load_w_count/sizeof(float)}), weight_data_ptr);
+        // auto q_weight_node =
+        //             create_constant_node(dt, ori_device_id, weight_shape, weight_data_ptr);
         input_gv.push_back(activation_node);
         input_gv.push_back(q_weight_node);
         int tmpvalue;
