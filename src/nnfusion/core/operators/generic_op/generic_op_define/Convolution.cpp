@@ -30,6 +30,55 @@ REGISTER_OP(Convolution)
     })
     */
     .translate_v2([](std::shared_ptr<graph::GNode> curr) -> std::string {
+        if (curr->get_input_shape(0).size() == 3) // Conv1D, NCW
+        {
+            auto ir_template =
+                R"( @output0@@output0_layout@ +=! @input0@@input0_layout@@pad_cond@ * @input1@@input1_layout@ where WO in @width@; )";
+            auto _op = static_pointer_cast<nnfusion::op::Convolution>(curr->get_op_ptr());
+            NNFUSION_CHECK_NOT_NULLPTR(_op) << "Node type is not " << curr->get_op_ptr()->get_op_type();
+            const auto& dilation_w = _op->get_window_dilation_strides()[0];
+            const auto& stride_w = _op->get_window_movement_strides()[0];
+            const auto& is_ncw = _op->get_data_format() == "NCW";
+            if (!is_ncw)
+            {
+                return "";
+            }
+            const auto& padding_below = _op->get_padding_below();
+            const auto& padding_above = _op->get_padding_above();
+            const auto& padding_w = _op->get_padding_below()[0];
+            const auto& kernel_size_w = curr->get_input_shape(1)[2];
+            const auto& in_shape = curr->get_input_shape(0);
+            const auto& out_shape = curr->get_output_shape(0);
+            const std::string data_format = "ncw";
+            if (dilation_w != 1 || padding_below != padding_above)
+            {
+                std::cout << "Conv1D " << dilation_w << " " << padding_below << " " << padding_above
+                          << std::endl;
+                return "";
+            }
+            std::string WO = "-@pad_0@ + KW + WO * " + to_string(stride_w);
+            std::string shape_template = "[N, C, " + WO + "]";
+            nnfusion::op::OpConfig::any config;
+            config["input1_layout"] = "[F, C, KW]";
+            config["output0_layout"] = "[N, F, WO]";
+            config["width"] = out_shape[2];
+            config["pad_0"] = to_string(padding_w);
+            config["input0_layout"] = op::create_code_from_template(shape_template, config);
+
+            std::string pad_cond;
+            if (padding_w)
+            {
+                config["in_width"] = in_shape[2];
+                auto pad_template =
+                    ".when([" + WO + " >= 0, " + WO +
+                    " < @in_width@], const(0.0).cast(@input0@@input0_layout@.dtype()))";
+                pad_cond = op::create_code_from_template(pad_template, config);
+            }
+            config["pad_cond"] = pad_cond;
+
+            return op::create_code_from_template(ir_template, config);
+        }
+
         auto ir_template =
             R"( @output0@@output0_layout@ +=! @input0@@input0_layout@@pad_cond@ * @input1@@input1_layout@ where HO in @height@, WO in @width@; )";
 
