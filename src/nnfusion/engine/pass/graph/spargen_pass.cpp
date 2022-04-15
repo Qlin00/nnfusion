@@ -498,6 +498,19 @@ private:
         }
 
     }
+    float * transpose_data(float * ori_data, Shape w_shape)
+    {
+        assert(w_shape.size()==2);
+        size_t w_count = nnfusion::shape_size(w_shape);
+        float * new_data = (float*)malloc(sizeof(float)*w_count);
+        for(int i=0;i<w_shape[0];i++){
+            for(int j=0;j<w_shape[1];j++){
+                // new_data[j][i]= ori_data[i][j];
+                new_data[j*w_shape[0]+i] = ori_data[i*w_shape[1]+j];
+            }
+        }
+        return new_data;
+    }
 
     void SputnikDotOptimize(std::shared_ptr<GNode> dot_node,
                           vector<std::shared_ptr<GNode>> fusible_nodes,
@@ -566,6 +579,8 @@ private:
         for (int i : out_shape)
             out_count *= i;
         auto weight_data_ptr = weight_constant->get_data_ptr();
+        // transpose the weight here
+        weight_data_ptr = (void*)transpose_data((float*)weight_data_ptr, w_shape);
         assert(weight_data_ptr!=nullptr);
         auto out_dim = out_shape.size();
         int dim_n = out_shape[out_dim-1];
@@ -603,10 +618,7 @@ private:
         }
         // auto weight_value_node = create_constant_node(n_device_type, ori_device_id, vector<int>({values->size()}), values->data());
         // TODO: calculate the right bias values for sputnik kernels. currently we just rand
-        if (has_bias){
-            // TODO because the sputnik kernels support add-bias-relu fusion, we should use the right bias values in the future
-            // it's good for the performance of the baseline in this way, so it does not affect the fairness of the comparsion.
-        }
+
         GNodeVector empty_list;
         auto dense_dot = std::dynamic_pointer_cast<op::Dot>(dot_node->get_op_ptr());
         auto sparse_dot = std::make_shared<op::SputnikDot>(dense_dot, dim_m, dim_k, dim_n, nnz);
@@ -621,6 +633,8 @@ private:
         }
         sparse_dot_node->Set<NNFusion_DeviceType>("DeviceType", move(n_device_type));
         sparse_dot_node->Set<int>("DeviceID", move(ori_device_id));
+        sparse_dot_node->Set<bool>("Sparse_Dot_Transpose", true);
+        // (*sparse_dot_node)["Sparse_Dot_Transpose"] = true;
         /// Remember after set the input node vector, we still need to set the edge manually!
         for (int i = 0; i < input_gv.size(); i++)
         {
