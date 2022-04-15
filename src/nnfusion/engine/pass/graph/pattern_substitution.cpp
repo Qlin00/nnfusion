@@ -24,6 +24,8 @@ DEFINE_bool(fbiasadd_fix,
             false,
             "Fix biasadd shape for TVM Conv2d-Add fusion in pattern_substitution_pass");
 
+DECLARE_bool(fsparta);
+
 // Only serial pattern supported in current implementation
 // The substitution directly applied to computation graph, no back propagation involved
 const static std::vector<std::vector<std::string>> PATTERNS = {
@@ -33,19 +35,24 @@ const static std::vector<std::vector<std::string>> PATTERNS = {
     // Conv-BN-Relu is converted into Conv-Add-Relu
     {"DepthwiseConv2dNative", "Add", "Relu"},
     {"Convolution", "Add", "Relu"},
-    {"Convolution", "Relu"}};
+    {"Convolution", "Relu"},
+    {"Dot", "Add"}};
 
 REGISTER_OP(Matched_Pattern)
     // .attr<nnfusion::op::OpConfig::any>("out_shape")
-    .infershape([](std::shared_ptr<GNode> gnode) -> void {
-        // auto op = std::dynamic_pointer_cast<nnfusion::op::GenericOp>(gnode->get_op_ptr());
-        // Shape out_shape = op->localOpConfig.getRoot()["out_shape"];
-        // gnode->set_output_type_and_shape(0, element::f32, out_shape);
-    })
-    .translate_v2([](std::shared_ptr<graph::GNode> curr) -> std::string {
-        auto _op = static_pointer_cast<nnfusion::op::Fused>(curr->get_op_ptr());
-        return _op->get_fused_ir2() + _op->get_plan_rule();
-    });
+    .infershape(
+        [](std::shared_ptr<GNode> gnode) -> void
+        {
+            // auto op = std::dynamic_pointer_cast<nnfusion::op::GenericOp>(gnode->get_op_ptr());
+            // Shape out_shape = op->localOpConfig.getRoot()["out_shape"];
+            // gnode->set_output_type_and_shape(0, element::f32, out_shape);
+        })
+    .translate_v2(
+        [](std::shared_ptr<graph::GNode> curr) -> std::string
+        {
+            auto _op = static_pointer_cast<nnfusion::op::Fused>(curr->get_op_ptr());
+            return _op->get_fused_ir2() + _op->get_plan_rule();
+        });
 ;
 
 namespace
@@ -142,6 +149,30 @@ private:
         }
 
         std::string identifier = "";
+        if (FLAGS_fsparta && matched.size() == 2 && matched[0]->node->get_op_type() == "Dot" &&
+            matched[1]->node->get_op_type() == "Add" && (*(matched[0]->node))["TESAID"].is_valid())
+        {
+            // (*(matched[0]->node))["TESAID"] = 1;
+            int TESAID = (*(matched[0]->node))["TESAID"].as<int>();
+            // TESAID = 1;
+            if (TESAID != -1)
+            {
+                identifier = "Fused_Dot_Add_TESAID_" + std::to_string(TESAID);
+                std::cout << identifier << std::endl;
+                auto fetched = kernel_db->fetch_all(identifier, "CUDA_GPU");
+                std::cout << fetched.size() << std::endl;
+                for (auto kernel_entry : fetched)
+                {
+                    // std::cout << kernel_entry->op_type << std::endl;
+                    // if (kernel_entry->op_type == "Fused_Dot_Add")
+                    {
+                        NNFUSION_LOG(INFO) << "Substitution applied: " << identifier;
+                        return Substitution(matched, identifier);
+                    }
+                }
+            }
+        }
+
         for (auto m_tn : matched)
         {
             std::shared_ptr<KernelContext> ctx(new KernelContext(m_tn->node));
@@ -154,7 +185,8 @@ private:
             {
                 if (fetched_kernel->source == "External")
                 {
-                    if (fetched_kernel->tags.find("BlockCudaEmitter") != fetched_kernel->tags.end() ||
+                    if (fetched_kernel->tags.find("BlockCudaEmitter") !=
+                            fetched_kernel->tags.end() ||
                         fetched_kernel->tags.find("CudaEmitter") != fetched_kernel->tags.end())
                     {
                         NNFUSION_CHECK(fetched_kernel->function != "");
@@ -176,6 +208,28 @@ private:
             "Matched_Pattern", "Matched_Pattern", op_config);
         GNodeVector empty_inputs;
         auto subs_node = std::make_shared<GNode>(subs_op, empty_inputs);
+
+        // assign device dispatch info
+        NNFusion_DeviceType device_type =
+            (*(matched[0]->node))["DeviceType"].as<NNFusion_DeviceType>();
+        int device_id = (*(matched[0]->node))["DeviceID"].as<int>();
+        for (auto match : matched)
+        {
+            NNFUSION_CHECK(device_type == (*(match->node))["DeviceType"].as<NNFusion_DeviceType>());
+            NNFUSION_CHECK(device_id == (*(match->node))["DeviceID"].as<int>());
+        }
+        (*subs_node)["DeviceType"] = device_type;
+        (*subs_node)["DeviceID"] = device_id;
+
+        // TESAID for SparTA
+        // std::cout << matched[0]->node->get_op_type() << std::endl;
+        if ((*(matched[0]->node))["TESAID"].is_valid())
+        {
+            // puts("!!!!!");
+            (*subs_node)["TESAID"] = (*(matched[0]->node))["TESAID"].as<int>();
+            // std::cout << (*subs_node)["TESAID"].as<int>() << std::endl;
+            // (*subs_node)["TESAID"] = 1;
+        }
 
         m_graph->add_node(subs_node);
         int next_input_id = 0;
@@ -200,25 +254,57 @@ private:
         {
             // bias as extra inputs
             // here we apply the BN folding to remove computation
+            // if (m_pattern[0] == "Dot" && m_pattern[1] == "Add" && (*(matched[0]->node))["TESAID"].is_valid() && FLAGS_fsparta)
+            // {
+            //     int id;
+            //     if (front_node->get_output_tensor_ptr(0)->get_name() ==
+            //         m_node->node->get_input_tensor_ptr(0)->get_name())
+            //     {
+            //         id = 1;
+            //     }
+            //     else
+            //     {
+            //         id = 0;
+            //     }
+            //     auto add_node = m_node->node;
+            //     auto broadcast_node = add_node->get_in_edge(id)->get_src();
+            //     auto bias_node = broadcast_node->get_in_edge(0)->get_src();
+            //     // if ()
+            //     auto bias_edge = m_node->node->get_in_edge(id);
+            //     subs_node->set_input(next_input_id, m_node->node->get_inputs().at(id));
+            //     m_graph->add_edge(
+            //         bias_edge->get_src(), bias_edge->get_src_output(), subs_node, next_input_id++);
+            //     break;
+            // }
 
             // biasadd fix for TVM conv-biasadd fusion due to different implementation of BiasAdd in NNFusion and TVM
             if (m_node->node->get_op_type() == "Add" && FLAGS_fbiasadd_fix)
             {
                 if (m_pattern[0] == "Convolution" && m_pattern[1] == "Add")
                 {
+                    int id;
+                    if (front_node->get_output_tensor_ptr(0)->get_name() ==
+                        m_node->node->get_input_tensor_ptr(0)->get_name())
+                    {
+                        id = 1;
+                    }
+                    else
+                    {
+                        id = 0;
+                    }
                     auto add_node = m_node->node;
-                    auto add_bias_node = add_node->get_in_edge(1)->get_src();
+                    auto add_bias_node = add_node->get_in_edge(id)->get_src();
                     auto add_bias_const_ptr = std::dynamic_pointer_cast<nnfusion::op::Constant>(
                         add_bias_node->get_op_ptr());
-                    auto dtype = add_node->get_input_element_type(1);
+                    auto dtype = add_node->get_input_element_type(id);
                     std::vector<double> add_bias = ExtractConstantData(add_bias_const_ptr, dtype);
-                    auto bias_shape = add_node->get_input_shape(1);
+                    auto bias_shape = add_node->get_input_shape(id);
                     std::shared_ptr<op::Constant> new_add_bias_op_ptr;
                     if (dtype == element::f32)
                     {
                         auto add_bias_converted = ConvertAddBias<float>(add_bias, bias_shape);
                         new_add_bias_op_ptr = std::make_shared<op::Constant>(
-                            dtype, add_node->get_input_shape(1), add_bias_converted.data());
+                            dtype, add_node->get_input_shape(id), add_bias_converted.data());
                     }
                     else
                     {
@@ -232,8 +318,19 @@ private:
             if (m_node->node->get_op_type() == "BatchNormInference" ||
                 m_node->node->get_op_type() == "Add")
             {
-                auto bias_edge = m_node->node->get_in_edge(1);
-                subs_node->set_input(next_input_id, m_node->node->get_inputs().at(1));
+                int id;
+                if (front_node->get_output_tensor_ptr(0)->get_name() ==
+                    m_node->node->get_input_tensor_ptr(0)->get_name())
+                {
+                    id = 1;
+                }
+                else
+                {
+                    id = 0;
+                }
+                // std::cout << "bias add input id: " << id << std::endl;
+                auto bias_edge = m_node->node->get_in_edge(id);
+                subs_node->set_input(next_input_id, m_node->node->get_inputs().at(id));
                 m_graph->add_edge(
                     bias_edge->get_src(), bias_edge->get_src_output(), subs_node, next_input_id++);
             }

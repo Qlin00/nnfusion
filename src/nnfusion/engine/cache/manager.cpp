@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS KernelCache(
             SupportOpList.insert(it.first);
         }
         SupportOpList.insert({"Dot",
+                              "Fused_Dot_Add",
                               "SparseDot",
                               "SputnikDot",
                               "QuantizeDot",
@@ -123,8 +124,7 @@ std::vector<KernelEntry_p> KernelCacheManager::fetch_all(std::string identifier,
                         << " on DeviceType: " << device_type;
     sqlite3_stmt* pStmt;
     const char* fetch = R"(
-SELECT Key, Identifier, OpType, Attributes, Source, DeviceType, Function, Tags, Miscs FROM KernelCache WHERE (Identifier = ?) AND (DeviceType = ?);
-    )";
+SELECT Key, Identifier, OpType, Attributes, Source, DeviceType, Function, Tags, Miscs FROM KernelCache WHERE (Identifier = ?) AND (DeviceType = ?);)";
     NNFUSION_CHECK(SQLITE_OK == sqlite3_prepare(kernel_cache, fetch, -1, &pStmt, 0));
     sqlite3_bind_text(pStmt, 1, identifier.data(), identifier.size(), SQLITE_STATIC);
     sqlite3_bind_text(pStmt, 2, device_type.data(), device_type.size(), SQLITE_STATIC);
@@ -150,7 +150,7 @@ SELECT Key, Identifier, OpType, Attributes, Source, DeviceType, Function, Tags, 
         {
             NNFUSION_LOG(DEBUG) << "Unsupported op_type: " << fetched_kernel->op_type
                                 << ", ingore this fetch";
-            throw "No supported kernel type fetch from kernel db";
+            // throw "No supported kernel type fetch from kernel db";
             fetched.clear();
             break;
         }
@@ -191,7 +191,7 @@ SELECT Key, Identifier, OpType, Attributes, Source, DeviceType, Function, Tags, 
     NNFUSION_CHECK(SQLITE_OK == sqlite3_finalize(pStmt));
     if (fetched.size() > 0)
     {
-        NNFUSION_LOG(DEBUG) << fetched.size() << " cached kernel fetched " << identifier
+        NNFUSION_LOG(INFO) << fetched.size() << " cached kernel fetched " << identifier
                             << " on: " << device_type;
     }
     else
