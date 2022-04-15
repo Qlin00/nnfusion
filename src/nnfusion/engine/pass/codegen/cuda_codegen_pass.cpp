@@ -1133,17 +1133,17 @@ void CudaCodegenPass::create_main_file(std::shared_ptr<InterpreterContext> ctx,
             lu_main << get_d2hcopy(tu)->get_code();
             lu_main << get_sync()->get_code();
         }
-        for (size_t i = 0; i < tu->out.size(); i++)
-        {
-            auto& tensor = *tu->out[i];
-            lu_main << "printf(\"%s \\n\", \"" << tensor.get_name() << ":\");\n"
-                    << "for (int i = 0; i < "
-                    << std::min(size_t(10), tensor.get_tensor_layout()->get_size())
-                    << "; ++i) printf(\"%e \", (float)" << tensor.get_name() << "_host[i]); "
-                    << "\nprintf(\" .. (size = " << tensor.get_tensor_layout()->get_size()
-                    << ", ends with %e);\\n\", (float)" << tensor.get_name() << "_host["
-                    << tensor.get_tensor_layout()->get_size() - 1 << "]);\n";
-        }
+        // for (size_t i = 0; i < tu->out.size(); i++)
+        // {
+        //     auto& tensor = *tu->out[i];
+        //     lu_main << "printf(\"%s \\n\", \"" << tensor.get_name() << ":\");\n"
+        //             << "for (int i = 0; i < "
+        //             << std::min(size_t(10), tensor.get_tensor_layout()->get_size())
+        //             << "; ++i) printf(\"%e \", (float)" << tensor.get_name() << "_host[i]); "
+        //             << "\nprintf(\" .. (size = " << tensor.get_tensor_layout()->get_size()
+        //             << ", ends with %e);\\n\", (float)" << tensor.get_name() << "_host["
+        //             << tensor.get_tensor_layout()->get_size() - 1 << "]);\n";
+        // }
         lu_main.block_end();
 
         lu_main << "\n//GPU time measurement\n";
