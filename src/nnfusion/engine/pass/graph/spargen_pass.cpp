@@ -580,7 +580,7 @@ private:
             out_count *= i;
         auto weight_data_ptr = weight_constant->get_data_ptr();
         // transpose the weight here
-        weight_data_ptr = (void*)transpose_data((float*)weight_data_ptr, w_shape);
+        // weight_data_ptr = (void*)transpose_data((float*)weight_data_ptr, w_shape);
         assert(weight_data_ptr!=nullptr);
         auto out_dim = out_shape.size();
         int dim_n = out_shape[out_dim-1];
@@ -594,6 +594,7 @@ private:
                                               nnfusion::shape_size(new_w_shape),
                                               sparse_threshold);
         std::cout << "Sparsity Ratio  "<< sparsity_ratio<<std::endl;
+        std::cout<< "Ori shape: "<<w_shape[0]<<w_shape[1]<<" New shape:"<<new_w_shape[0]<<" "<<new_w_shape[1]<<std::endl;
         std::shared_ptr<vector<int32_t>> row_idx, col_idx;
         std::shared_ptr<vector<float>> values;
         std::tie(row_idx, col_idx, values) = convert_to_csr<float>(
