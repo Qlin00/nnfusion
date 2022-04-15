@@ -30,7 +30,8 @@ namespace nnfusion
                     GENERIC_OP_LOGGING();
                     LanguageUnit_p _lu(new LanguageUnit(get_function_name()));
                     auto& lu = *_lu;
-                    lu << "\n";
+                    // lu << "\n";
+                    lu << "output0 = input0;\n";
                     return _lu;
                 }
 
