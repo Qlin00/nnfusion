@@ -31,6 +31,8 @@ set(SRC
     quantize_kernel_pass.cpp
     block_quantize_pass.cpp
     spargen_pass.cpp
+    sparta_kernel_fetch_pass.cpp
+    sparse_dot_transpose_pass.cpp
     ir_based_fusion_pass.cpp
     subgraph_fusion_pass.cpp
 

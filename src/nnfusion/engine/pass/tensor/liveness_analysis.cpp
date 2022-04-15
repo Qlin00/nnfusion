@@ -34,7 +34,7 @@ bool TensorLivenessAnalysis::run(std::shared_ptr<InterpreterContext> ctx,
             if (!(*ins)["Async_info"].is_valid())
             {
                 string name = gnode ? gnode->get_name() : ins->name();
-                NNFUSION_CHECK_FAIL() << "Async info should be assigned before this pass：" << name;
+                NNFUSION_CHECK_FAIL() << "Async info should be assigned before this pass: " << name;
             }
             auto& async_info = (*ins)["Async_info"].as<AsyncExecutionInfo>();
             std::shared_ptr<nnfusion::async::Stream> stream;
@@ -43,6 +43,14 @@ bool TensorLivenessAnalysis::run(std::shared_ptr<InterpreterContext> ctx,
                 stream = async_info.execution_stream;
             else
                 stream = async_info.execution_thread;
+
+            // do not alloc memory for dismantled weight tensors
+            if (gnode && gnode->is_constant() && (*gnode)["SparTA_Value_Dismantled"].is_valid() &&
+                (*gnode)["SparTA_Value_Dismantled"].as<bool>())
+            {
+                std::cout << gnode->get_name() << " skip!" << std::endl;
+                continue;
+            }
 
             auto stream_id = stream->get_stream_id();
             if (gnode && gnode->is_parameter())

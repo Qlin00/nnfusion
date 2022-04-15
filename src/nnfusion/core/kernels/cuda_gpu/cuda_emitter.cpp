@@ -623,6 +623,21 @@ LanguageUnit_p cuda::CacheCudaEmitter::emit_dependency()
     return _lu;
 }
 
+LanguageUnit_p cuda::CacheCudaEmitter::emit_comments()
+{
+    LanguageUnit_p _lu(new LanguageUnit(get_function_name() + "_comments"));
+    auto& lu = *_lu;
+
+    if (kernel_entry.function.find("function_comment") != kernel_entry.function.end())
+    {
+        std::stringstream ss;
+        ss.str(kernel_entry.function["function_comment"]);
+        lu << ss.str();
+    }
+
+    return _lu;
+}
+
 void cuda::CacheCudaEmitter::set_launch_config()
 {
     auto func = kernel_entry.function;

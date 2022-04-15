@@ -29,9 +29,11 @@
 #include "nnfusion/engine/pass/graph/superscaler_dataparallelism_pass.hpp"
 #include "nnfusion/engine/pass/graph/vector_dot_transpose_pass.hpp"
 #include "nnfusion/engine/pass/graph/sparse_kernel_pass.hpp"
+#include "nnfusion/engine/pass/graph/sparta_kernel_fetch_pass.hpp"
 #include "nnfusion/engine/pass/graph/quantize_kernel_pass.hpp"
 #include "nnfusion/engine/pass/graph/block_quantize_pass.hpp"
 #include "nnfusion/engine/pass/graph/spargen_pass.hpp"
+#include "nnfusion/engine/pass/graph/sparse_dot_transpose_pass.hpp"
 
 #include "nnfusion/engine/pass/extract_graph_signature.hpp"
 #include "nnfusion/engine/pass/tensor/inplace_tensor_analysis.hpp"
@@ -71,6 +73,9 @@ CudaEngine::CudaEngine()
     g_passes->push_back(make_shared<QuantizeKernelPass>());
     g_passes->push_back(make_shared<BlockQuantizeKernelPass>());
     g_passes->push_back(make_shared<SparGenPass>());
+    g_passes->push_back(make_shared<PatternSubstitutionPass>());
+    g_passes->push_back(make_shared<SparseDotTransposePass>());
+    g_passes->push_back(make_shared<SparTAKernelFetchPass>());
 
     g_passes->push_back(make_shared<IRBasedFusionPass>());
     g_passes->push_back(make_shared<PatternSubstitutionPass>());
@@ -83,6 +88,11 @@ CudaEngine::CudaEngine()
     g_passes->push_back(make_shared<ProfilingBasedKernelSelector>());
     g_passes->push_back(make_shared<FetchBasedSelector>());
     g_passes->push_back(make_shared<DefaultKernelSelector>());
+
+    
+    // g_passes->push_back(make_shared<SparseDotTransposePass>());
+    // g_passes->push_back(make_shared<DefaultGNodeDeviceDispatcher>());
+    // g_passes->push_back(make_shared<DefaultKernelSelector>());
 
     // GPU specific graph passes
     //g_passes->push_back(make_shared<KernelFusionPass>());
