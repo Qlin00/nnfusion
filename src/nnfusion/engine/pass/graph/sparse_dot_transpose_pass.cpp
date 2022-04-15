@@ -188,15 +188,15 @@ public:
         std::vector<std::shared_ptr<GNode>> nodes = m_graph->get_nodes();
         for (auto it : nodes)
         {
-            if ((*it)["TESAID"].is_valid())
-            {
-                if (it->get_input_shape(0).size() == 3) // bert
-                {
-                    std::cout << "enable SparTA_Dot_Transpose for Dot " << it->get_name()
-                              << std::endl;
-                    (*it)["Sparse_Dot_Transpose"] = true;
-                }
-            }
+            // if ((*it)["TESAID"].is_valid())
+            // {
+            //     if (it->get_input_shape(0).size() == 3) // bert
+            //     {
+            //         std::cout << "enable SparTA_Dot_Transpose for Dot " << it->get_name()
+            //                   << std::endl;
+            //         (*it)["Sparse_Dot_Transpose"] = true;
+            //     }
+            // }
             if ((*it)["Sparse_Dot_Transpose"].is_valid())
             {
                 transpose_dot_gnode(it);
