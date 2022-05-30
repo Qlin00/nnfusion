@@ -119,7 +119,10 @@ if __name__ == '__main__':
     # import ipdb; ipdb.set_trace()
     data_dir = f"bert_{sparsity}"
     pruner = HardwareAwarePruner(model, config_list, hardware_evaluator, align_n_set=[1,2,4,8,16,32], experiment_data_dir=data_dir)
-    pruner.compress()
+    
+    model = pruner.compress()
+    import pdb; pdb.set_trace()
+    # _, model, masks, _, _ = pruner.get_best_result()
     for epoch in range(finetune_epoch[task_name]):
         trainer(model, optimizer, train_dataloader)
         val_metric = evaluator(model, metric, is_regression, validate_dataloader)
@@ -128,5 +131,6 @@ if __name__ == '__main__':
             f.write('{}, {}, {}, {}, {}, {}\n'.format(task_name, seed, sparsity, epoch, val_metric, test_metric))
     weight_path = os.path.join(data_dir, 'weight.pth')
     mask_path = os.path.join(data_dir, 'mask.pth')
-    import pdb; pdb.set_trace()
-    pruner.export_model(weight_path, mask_path)
+    # import pdb; pdb.set_trace()
+    torch.save(model.state_dict(), weight_path)
+    # pruner.export_model(weight_path, mask_path)
