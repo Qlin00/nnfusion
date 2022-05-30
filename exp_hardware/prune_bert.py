@@ -128,4 +128,5 @@ if __name__ == '__main__':
             f.write('{}, {}, {}, {}, {}, {}\n'.format(task_name, seed, sparsity, epoch, val_metric, test_metric))
     weight_path = os.path.join(data_dir, 'weight.pth')
     mask_path = os.path.join(data_dir, 'mask.pth')
+    import pdb; pdb.set_trace()
     pruner.export_model(weight_path, mask_path)
