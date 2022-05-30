@@ -98,6 +98,11 @@ param_list = {
         # activation, w_val, w_row, w_col, c
         'symbol': ['input0', 'input1', 'input2', 'input3', 'input4','output0'],
         'dtype': ['float*', 'float*', 'float*', 'float*', 'float*', 'float*']
+    },
+    "BalanceDot": {
+        # activation, w_val, w_row, w_col, c
+        'symbol': ['input0', 'input1', 'input2', 'input3','output0'],
+        'dtype': ['float*', 'float*', 'float*', 'float*', 'float*']
     }
 }
 
@@ -144,6 +149,18 @@ def gen_config(op_type, kernel, shared_memory, num_sync):
         config["out_shape"] = [kernel["parameters"]["out_shape"]]
         config[
             "function_signature"] = "extern \"C\" __global__  void (float* __restrict__ input0,  float* __restrict__ input1,  float* __restrict__ output0)"
+    elif (op_type=='BalanceDot'):
+        config["in_shape"] = []
+        for i in range(100):
+            input_key = f"arg{i}_shape"
+            if input_key in kernel["parameters"]:
+                config["in_shape"].append(kernel["parameters"][input_key])
+
+        config["out_shape"] = [kernel["parameters"]["out_shape"]]
+        in_paranames = ','.join(['float* __restrict__ input%d'%i for i in range(len(param_list["BalanceDot"]["dtype"])-1)])
+        config[
+            "function_signature"] = "extern \"C\" __global__  void (%s, float* __restrict__ output0)" % in_paranames
+    
     elif ("QuantizeDot" in op_type):
         config["in_shape"] = []
         for i in range(100):

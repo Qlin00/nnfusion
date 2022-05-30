@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS KernelCache(
         SupportOpList.insert({"Dot",
                               "Fused_Dot_Add",
                               "SparseDot",
+                              "BalanceDot",
                               "SputnikDot",
                               "QuantizeDot",
                               "QuantizeConv",

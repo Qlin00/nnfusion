@@ -93,10 +93,18 @@ public:
                 this->scale_shift[tesa_id] = scale_shift_f;
                 this->bias_data_path[tesa_id] = bias_f;
             }
+            else if (sparse_type == "Balance"){
+                string condense_weight, balance_index, bias_f;
+                iss >> condense_weight >> balance_index >> bias_f;
+                this->bias_data_path[tesa_id] = bias_f;
+                this->weight_data_path[tesa_id] = condense_weight;
+                this->csr_cols[tesa_id] = balance_index;
+            }
             else if (sparse_type == "Sputnik"){}
             else if (sparse_type == "HipSparse"){}
             else if (sparse_type == "MklSparse"){}
             else if (sparse_type == "ConvertDot"){}
+
             else
             {
                 throw std::invalid_argument("Not supported Sparse Type");
@@ -274,6 +282,11 @@ public:
             if (kernel_entry == nullptr)
                 return;
             QuantizeDotOptimize(dot_node, kernel_entry, fusible_nodes, n_device_type);
+        }else if(sparse_type == "Balance"){
+            auto kernel_entry = fetch_kernel(this->cache_manager, identifier, n_device_type);
+            if (kernel_entry == nullptr)
+                return;
+            BalanceDotOptimize(dot_node, kernel_entry, fusible_nodes, n_device_type);
         }
         else
         {
@@ -1934,6 +1947,205 @@ private:
         }
 
         std::cout << "###############################" << std::endl;
+        //exit(-1);
+        std::cout << "Bind the Quantized kernel!" << std::endl;
+        has_constant = true;
+    }
+
+    void BalanceDotOptimize(std::shared_ptr<GNode> dot_node,
+                          nnfusion::cache::KernelEntry_p kernel_entry,
+                          vector<std::shared_ptr<GNode>> fusible_nodes,
+                          NNFusion_DeviceType n_device_type)
+    {
+        std::cout << "In SparGen BlockDotOptimize" << std::endl;
+        assert(kernel_entry != nullptr);
+        assert(dot_node != nullptr);
+        std::cout << "Fusible Nodes:";
+        for(int i=0;i<fusible_nodes.size();i++){
+            std::cout<<" "<<fusible_nodes[i]->get_op_type();
+        }
+        std::cout<<std::endl;
+
+        bool has_constant = false;
+        bool has_bias = false;
+        bool has_relu = false;
+        vector<shared_ptr<GNode>> need_remove;
+        shared_ptr<GNode> add_node = nullptr;
+        shared_ptr<GNode> bias_broadcast = nullptr;
+        shared_ptr<GNode> relu_node = nullptr;
+        int tesaid = (*dot_node)["TESAID"].as<int>();
+        for (auto node : fusible_nodes)
+        {
+            if (node->get_op_type() == "Add")
+            {
+                add_node = node;
+                has_bias = true;
+                for (auto in_edge : add_node->get_in_edges())
+                {
+                    auto src_node = in_edge->get_src();
+                    if (src_node->is_constant())
+                    {
+                        auto ori_bias_weight = src_node;
+                        auto bias_related = find_all_predecessors(src_node);
+                        need_remove.push_back(add_node);
+                        need_remove.push_back(ori_bias_weight);
+                        need_remove.insert(
+                            need_remove.end(), bias_related.begin(), bias_related.end());
+                    }
+                    else if (src_node->get_op_type() == "Broadcast")
+                    {
+                        bias_broadcast = src_node;
+                        auto bias_related = find_all_predecessors(bias_broadcast);
+                        //ori_bias_weight = bias_broadcast->get_in_edge(0)->get_src();
+                        need_remove.push_back(add_node);
+                        need_remove.push_back(bias_broadcast);
+                        need_remove.insert(
+                            need_remove.end(), bias_related.begin(), bias_related.end());
+                    }
+                }
+            }
+            else if (node->get_op_type() == "Relu")
+            {
+                has_relu = true;
+                assert(has_bias = true);
+                relu_node = node;
+                need_remove.push_back(relu_node);
+            }
+        }
+        // Start to replace the block sparse kernel
+        auto src_node = dot_node->get_in_edge(1)->get_src();
+        if (!src_node->is_constant())
+            return;
+
+        int ori_device_id = (*src_node)["DeviceID"];
+
+        auto weight_constant =
+            std::dynamic_pointer_cast<nnfusion::op::Constant>(src_node->get_op_ptr());
+        auto w_shape = weight_constant->get_shape();
+        size_t weight_count = 1, out_count = 1;
+        for (int i : w_shape)
+            weight_count *= i;
+        auto out_shape = dot_node->get_output_shape(0);
+        for (int i : out_shape)
+            out_count *= i;
+        size_t index_count, bias_count, condense_weight_count;
+        // we filled the ramdom data temporarily
+        // float* quan_weight_data = (float*)malloc(sizeof(float) * weight_count);
+        float* balance_index = (float*)malloc(sizeof(float) * weight_count);
+        memset(balance_index, 0, sizeof(float) * (weight_count));
+        float* condense_weight = (float*)malloc(sizeof(float) * weight_count);
+        memset(condense_weight, 0, sizeof(float) * weight_count);
+    
+        index_count = load_from_file(
+            (char*)balance_index, sizeof(float) * weight_count, this->csr_cols[tesaid]);
+        condense_weight_count = load_from_file(
+            (char*)condense_weight, sizeof(float) * weight_count, this->weight_data_path[tesaid]);
+        // TODO load the right value according to the config
+
+        float* bias_data =
+            (float*)malloc(sizeof(float) * weight_count); // TODO use the correct size here
+        memset(bias_data, 0, sizeof(float) * weight_count);
+        auto dense_op = std::dynamic_pointer_cast<op::Dot>(dot_node->get_op_ptr());
+        auto condense_weight_node =
+            create_constant_node(n_device_type, ori_device_id, vector<size_t>({1 + condense_weight_count/sizeof(float)}), condense_weight);
+
+        auto balance_index_node =
+            create_constant_node(n_device_type, ori_device_id, vector<size_t>({1 + index_count/sizeof(float)}), balance_index);
+
+        auto activate_node = dot_node->get_in_edge(0)->get_src();
+        GNodeVector input_gv({activate_node, condense_weight_node, balance_index_node});
+
+        
+        m_graph->add_node(condense_weight_node);
+        m_graph->add_node(balance_index_node);
+
+
+        // Handle the fuse option here
+        if (has_bias)
+        {
+            bias_count = w_shape[0] * sizeof(float);
+            if (this->bias_data_path[tesaid].size() > 0)
+            {
+                bias_count = load_from_file(
+                    (char*)bias_data, sizeof(float) * weight_count, this->bias_data_path[tesaid]);
+            }
+            auto bias_shape = nnfusion::Shape(vector<size_t>(
+                {1 + bias_count/sizeof(float)})); // TODO currently the memory space for bias is wasted
+            // TODO also load the correct bias weights
+            auto bias = std::make_shared<op::Constant>(
+                from<float>(), bias_shape, static_cast<void*>(bias_data));
+
+
+            // if (this->bias_data_path[tesaid].size() > 0)
+            // {
+            //     bias_count = load_from_file(
+            //         (char*)bias_data, sizeof(float) * weight_count, this->bias_data_path[tesaid]);
+            // }
+            auto bias_node = std::make_shared<GNode>(bias, GNodeVector({}));
+            bias->revalidate_and_infer_types(bias_node->shared_from_this());
+            bias_node->Set<NNFusion_DeviceType>("DeviceType", move(n_device_type));
+            bias_node->Set<int>("DeviceID", move(ori_device_id));
+            input_gv.push_back(bias_node);
+            m_graph->add_node(bias_node);
+        }
+        GNodeVector empty_list;
+        auto sparse_dot = std::make_shared<op::SparseDot>(dense_op);
+        // auto quan_dot = std::make_shared<op::QuantizeDot>(dense_op, quantize_bit);
+        auto sparse_dot_node = std::make_shared<GNode>(sparse_dot, empty_list);
+        for (int i = 0; i < input_gv.size(); i++)
+        {
+            sparse_dot_node->set_input(
+                i,
+                std::make_shared<Input>(input_gv[i]->get_outputs().at(0)->get_element_type(),
+                                        input_gv[i]->get_outputs().at(0)->get_partial_shape()));
+        }
+        sparse_dot_node->Set<NNFusion_DeviceType>("DeviceType", move(n_device_type));
+        sparse_dot_node->Set<int>("DeviceID", move(ori_device_id));
+        /// Remember after set the input node vector, we still need to set the edge manually!
+        for (int i = 0; i < input_gv.size(); i++)
+        {
+            m_graph->add_edge(input_gv.at(i), 0, sparse_dot_node, i);
+        }
+
+        // replace node will revalidate and infer the output tensor
+        auto last_node = dot_node;
+        if (fusible_nodes.size())
+            last_node = fusible_nodes[fusible_nodes.size() - 1];
+
+        auto ori_outputs = last_node->get_outputs();
+        //???
+        for (int i = 0; i < ori_outputs.size(); i++)
+        {
+            sparse_dot_node->set_output(i, ori_outputs[i]);
+        }
+
+        m_graph->replace_node(last_node, sparse_dot_node, false);
+        m_graph->remove_node(src_node);
+        need_remove.push_back(dot_node);
+        for (auto tmp_node : need_remove)
+        {
+            std::cout << " Removing " << tmp_node->get_name() << " " << tmp_node->get_op_type()
+                      << std::endl;
+        }
+        for (auto tmp_node : need_remove)
+        {
+            if (tmp_node != last_node)
+            {
+                m_graph->remove_node(tmp_node);
+            }
+        }
+
+        // Bind the fetched kernel here with the new kernel context
+        std::shared_ptr<KernelContext> ctx(new KernelContext(sparse_dot_node));
+        auto kernel = std::make_shared<kernels::cuda::CacheCudaEmitter>(ctx, kernel_entry);
+        KernelEmitter::Pointer pkernel = kernel;
+
+        // need to emit the source before bind the kernel
+        kernel->get_or_emit_source();
+        (*sparse_dot_node)["Kernel_Selection_Result"] = std::make_pair(n_device_type, pkernel);
+        std::cout << "###############################" << std::endl;
+        std::cout << kernel->get_or_emit_source()->body_unit->get_code() << std::endl;
+        std::cout << kernel->get_or_emit_source()->signature_unit->get_code() << std::endl;
         //exit(-1);
         std::cout << "Bind the Quantized kernel!" << std::endl;
         has_constant = true;
