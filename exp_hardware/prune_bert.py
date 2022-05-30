@@ -118,7 +118,7 @@ if __name__ == '__main__':
     config_list = [{'op_types': ['Linear'], 'sparsity': sparsity}]
     # import ipdb; ipdb.set_trace()
     data_dir = f"bert_{sparsity}"
-    pruner = HardwareAwarePruner(model, config_list, hardware_evaluator, align_n=[1,2,4,8,16,32], experiment_data_dir=data_dir)
+    pruner = HardwareAwarePruner(model, config_list, hardware_evaluator, align_n_set=[1,2,4,8,16,32], experiment_data_dir=data_dir)
     pruner.compress()
     for epoch in range(finetune_epoch[task_name]):
         trainer(model, optimizer, train_dataloader)
