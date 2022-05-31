@@ -136,4 +136,5 @@ if __name__ == '__main__':
     mask_path = os.path.join(data_dir, 'mask.pth')
     # import pdb; pdb.set_trace()
     torch.save(model.state_dict(), weight_path)
+    torch.save(masks, mask_path)
     # pruner.export_model(weight_path, mask_path)
