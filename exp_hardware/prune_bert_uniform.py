@@ -73,7 +73,7 @@ if __name__ == '__main__':
     parser.add_argument('task_name', type=str)
     parser.add_argument('--seed', type=int, default=1024)
     parser.add_argument('--sparsity', type=float, default=0.5)
-    parser.add_argument('--align', type=int, default=8)
+    parser.add_argument('--alignn', type=int, default=8)
     args = parser.parse_args()
 
     task_name = args.task_name
@@ -119,11 +119,11 @@ if __name__ == '__main__':
     # config_list = [{'op_types': ['Linear'], 'op_names': op_names, 'sparsity': sparsity}]
     config_list = [{'op_types': ['Linear'], 'sparsity': sparsity}]
     # import ipdb; ipdb.set_trace()
-    data_dir = f"bert_{sparsity}"
-    pruner = HardwareAwarePruner(model, config_list, hardware_evaluator, align_n_set=[1,2,4,8,16,32], experiment_data_dir=data_dir, need_sort=False)
-    # pruner = BalancedPruner(model, config_list, align_n=args.align, balance_gran=[32])
-    model = pruner.compress()
-    # import pdb; pdb.set_trace()
+    data_dir = f"bert_{sparsity}_uniform_align_n{args.alignn}"
+    # pruner = HardwareAwarePruner(model, config_list, hardware_evaluator, align_n_set=[1,2,4,8,16,32], experiment_data_dir=data_dir, need_sort=False)
+    pruner = BalancedPruner(model, config_list, align_n=args.alignn, balance_gran=[32])
+    model, masks = pruner.compress()
+    import pdb; pdb.set_trace()
     # _, model, masks, _, _ = pruner.get_best_result()
     for epoch in range(finetune_epoch[task_name]):
         trainer(model, optimizer, train_dataloader)
