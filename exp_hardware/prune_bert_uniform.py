@@ -117,7 +117,7 @@ if __name__ == '__main__':
     op_names.extend(["bert.encoder.layer.{}.attention.output.dense".format(i) for i in range(0, 12)])
 
     # config_list = [{'op_types': ['Linear'], 'op_names': op_names, 'sparsity': sparsity}]
-    config_list = [{'op_types': ['Linear'], 'sparsity': sparsity}]
+    config_list = [{'op_types': ['Linear'], 'sparsity': sparsity}, {'exclude':True, 'op_names':['classifier']}]
     # import ipdb; ipdb.set_trace()
     data_dir = f"bert_{task_name}_{sparsity}_uniform_align_n_{args.alignn}"
     os.makedirs(data_dir, exist_ok=True)
