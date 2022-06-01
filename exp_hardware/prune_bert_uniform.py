@@ -122,7 +122,7 @@ if __name__ == '__main__':
     data_dir = f"bert_{task_name}_{sparsity}_uniform_align_n_{args.alignn}"
     os.makedirs(data_dir, exist_ok=True)
     # pruner = HardwareAwarePruner(model, config_list, hardware_evaluator, align_n_set=[1,2,4,8,16,32], experiment_data_dir=data_dir, need_sort=False)
-    pruner = BalancedPruner(model, config_list, align_n=args.alignn, balance_gran=[32])
+    pruner = BalancedPruner(model, config_list, align_n=[args.alignn, 1], balance_gran=[1, 32])
     model, masks = pruner.compress()
     import pdb; pdb.set_trace()
     # _, model, masks, _, _ = pruner.get_best_result()
