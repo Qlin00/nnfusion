@@ -37,10 +37,10 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 finetune_epoch = {
     "cola": 20,
-    "mnli": 5,
+    "mnli": 50,
     "mrpc": 20,
     "qnli": 10,
-    "qqp": 5,
+    "qqp": 50,
     "rte": 20,
     "sst2": 20,
     "stsb": 20,
@@ -119,7 +119,7 @@ if __name__ == '__main__':
     # config_list = [{'op_types': ['Linear'], 'op_names': op_names, 'sparsity': sparsity}]
     config_list = [{'op_types': ['Linear'], 'sparsity': sparsity}]
     # import ipdb; ipdb.set_trace()
-    data_dir = f"bert_{sparsity}_uniform_align_n_{args.alignn}"
+    data_dir = f"bert_{task_name}_{sparsity}_uniform_align_n_{args.alignn}"
     os.makedirs(data_dir, exist_ok=True)
     # pruner = HardwareAwarePruner(model, config_list, hardware_evaluator, align_n_set=[1,2,4,8,16,32], experiment_data_dir=data_dir, need_sort=False)
     pruner = BalancedPruner(model, config_list, align_n=args.alignn, balance_gran=[32])
