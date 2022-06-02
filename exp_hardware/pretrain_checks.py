@@ -114,7 +114,7 @@ if __name__ == '__main__':
         val_metric = evaluator(model, metric, is_regression, validate_dataloader)
         test_metric = evaluator(model, metric, is_regression, test_dataloader)
         with open(os.path.join(data_dir, 'result.csv'), 'a+') as f:
-            f.write('{}, {}, {}, {}, {}, {}\n'.format(task_name, seed, sparsity, epoch, val_metric, test_metric))
+            f.write('{}, {}, {}, {}, {}\n'.format(task_name, seed, epoch, val_metric, test_metric))
     weight_path = os.path.join(data_dir, 'weight.pth')
     torch.save(model.state_dict(), weight_path)
 
