@@ -77,7 +77,7 @@ if __name__ == '__main__':
     task_name = args.task_name
     num_labels = 3 if task_name == 'mnli' else 2
     seed = args.seed
-    sparsity = args.sparsity
+
     is_regression = True if task_name == 'stsb' else False
 
     setup_seed(seed)
