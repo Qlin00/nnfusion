@@ -40,7 +40,7 @@ finetune_epoch = {
     "mnli": 50,
     "mrpc": 20,
     "qnli": 10,
-    "qqp": 50,
+    "qqp": 30,
     "rte": 20,
     "sst2": 20,
     "stsb": 20,
@@ -75,6 +75,7 @@ if __name__ == '__main__':
     parser.add_argument('--sparsity', type=float, default=0.5)
     parser.add_argument('--alignn', type=int, default=8)
     parser.add_argument('--cks', type=str, default=None)
+    parser.add_argument('--outdir', type=str, default=None)
     args = parser.parse_args()
 
     task_name = args.task_name
@@ -124,6 +125,8 @@ if __name__ == '__main__':
     config_list = [{'op_types': ['Linear'], 'sparsity': sparsity}, {'exclude':True, 'op_names':['classifier']}]
     # import ipdb; ipdb.set_trace()
     data_dir = f"bert_{task_name}_{sparsity}_uniform_align_n_{args.alignn}"
+    if args.outdir is not None:
+        data_dir = args.outdir
     os.makedirs(data_dir, exist_ok=True)
     # pruner = HardwareAwarePruner(model, config_list, hardware_evaluator, align_n_set=[1,2,4,8,16,32], experiment_data_dir=data_dir, need_sort=False)
     pruner = BalancedPruner(model, config_list, align_n=[args.alignn, 1], balance_gran=[1, 32])
