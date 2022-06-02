@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from torch.optim import Adam
 from torch.utils.data import DataLoader
-
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from accelerate import Accelerator
 from datasets import load_metric
 from transformers import (
@@ -74,6 +74,7 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=1024)
     parser.add_argument('--sparsity', type=float, default=0.5)
     parser.add_argument('--alignn', type=int, default=8)
+    parser.add_argument('--cks', type=str, default=None)
     args = parser.parse_args()
 
     task_name = args.task_name
@@ -98,12 +99,15 @@ if __name__ == '__main__':
 
     # model = torch.load(Path(root_path, 'pretrained_glue_models_bert-base-cased', 'pretrained_model_{}.pt'.format(task_name))).to(device)
     model = BertForSequenceClassification.from_pretrained(model_name, num_labels=num_labels).cuda()
+    if args.cks:
+        model.load_state_dict(torch.load(args.cks))
     optimizer = Adam(model.parameters(), lr=2e-5)
-
+    lr_scheduler = CosineAnnealingLR(optimizer, T_max=finetune_epoch[task_name])
     metric = load_metric("glue", task_name)
     # import ipdb; ipdb.set_trace()
     val_metric = evaluator(model, metric, is_regression, validate_dataloader)
     test_metric = evaluator(model, metric, is_regression, test_dataloader)
+    print('Accuracy of initial checkpoints', test_metric)
     def hardware_evaluator(model):
         result = evaluator(model, metric, is_regression, test_dataloader)
         return result['accuracy']
@@ -132,6 +136,8 @@ if __name__ == '__main__':
         test_metric = evaluator(model, metric, is_regression, test_dataloader)
         with open(os.path.join(data_dir, 'result.csv'), 'a+') as f:
             f.write('{}, {}, {}, {}, {}, {}\n'.format(task_name, seed, sparsity, epoch, val_metric, test_metric))
+        lr_scheduler.step()
+        print('Learning rate: ', lr_scheduler.get_last_lr())
     weight_path = os.path.join(data_dir, 'weight.pth')
     mask_path = os.path.join(data_dir, 'mask.pth')
     # import pdb; pdb.set_trace()
