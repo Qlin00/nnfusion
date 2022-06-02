@@ -37,10 +37,10 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 finetune_epoch = {
     "cola": 20,
-    "mnli": 50,
+    "mnli": 5,
     "mrpc": 20,
     "qnli": 10,
-    "qqp": 50,
+    "qqp": 5,
     "rte": 20,
     "sst2": 20,
     "stsb": 20,
