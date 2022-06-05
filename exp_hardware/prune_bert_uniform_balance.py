@@ -40,7 +40,7 @@ finetune_epoch = {
     "mnli": 50,
     "mrpc": 20,
     "qnli": 10,
-    "qqp": 30,
+    "qqp": 10,
     "rte": 20,
     "sst2": 20,
     "stsb": 20,
@@ -120,9 +120,10 @@ if __name__ == '__main__':
     op_names.extend(["bert.encoder.layer.{}.attention.self.key".format(i) for i in range(0, 12)])
     op_names.extend(["bert.encoder.layer.{}.attention.self.value".format(i) for i in range(0, 12)])
     op_names.extend(["bert.encoder.layer.{}.attention.output.dense".format(i) for i in range(0, 12)])
+    op_names.extend(["bert.encoder.layer.{}.intermediate.dense".format(i) for i in range(0, 12)])
 
     # config_list = [{'op_types': ['Linear'], 'op_names': op_names, 'sparsity': sparsity}]
-    config_list = [{'op_types': ['Linear'], 'sparsity': sparsity}, {'exclude':True, 'op_names':['classifier']}]
+    config_list = [{'op_types': ['Linear'], 'sparsity': sparsity, 'op_names':op_names}, {'exclude':True, 'op_names':['classifier']}]
     # import ipdb; ipdb.set_trace()
     data_dir = f"bert_{task_name}_{sparsity}_uniform_align_n_{args.alignn}"
     if args.outdir is not None:
@@ -131,7 +132,7 @@ if __name__ == '__main__':
     # pruner = HardwareAwarePruner(model, config_list, hardware_evaluator, align_n_set=[1,2,4,8,16,32], experiment_data_dir=data_dir, need_sort=False)
     pruner = BalancedPruner(model, config_list, align_n=[args.alignn, 1], balance_gran=[1, 32])
     model, masks = pruner.compress()
-    import pdb; pdb.set_trace()
+    import ipdb; ipdb.set_trace()
     # _, model, masks, _, _ = pruner.get_best_result()
     for epoch in range(finetune_epoch[task_name]):
         trainer(model, optimizer, train_dataloader)
