@@ -356,7 +356,7 @@ def main():
     else:
         pruner = BlockPruner(model, config_list, block_sparse_size=[model_args.blockh, model_args.blockw])
     model, masks = pruner.compress()
-    data_dir = f"hubert_superb_{model_args.sparsity_ratio}_uniform_align_n_{model_args.alignn}"
+    data_dir = f"hubert_superb_{model_args.sparsity_ratio}_uniform_block_{model_args.blockh}_{model_args.blockw}"
     os.makedirs(data_dir, exist_ok=True)
     torch.save(masks, os.path.join(data_dir, 'mask.pth'))
     if training_args.do_train:
