@@ -324,7 +324,7 @@ def main():
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
-    )
+    ).cuda()
     if model_args.hook_forward:
         def op_decorator(func):
             def new_func(*args, **kwargs):
@@ -332,8 +332,19 @@ def main():
                 return None
             return new_func
         setattr(model, 'forward', op_decorator(getattr(model, 'forward')))
+        
     pruner = None
-    config_list = [{'op_types': ['Linear'], 'sparsity': model_args.sparsity_ratio}, {'exclude':True, 'op_names':['classifier']}]
+    op_names = []
+    op_names.extend(["hubert.encoder.layers.{}.attention.k_proj".format(i) for i in range(0, 12)])
+    op_names.extend(["hubert.encoder.layers.{}.attention.v_proj".format(i) for i in range(0, 12)])
+    op_names.extend(["hubert.encoder.layers.{}.attention.q_proj".format(i) for i in range(0, 12)])
+    op_names.extend(["hubert.encoder.layers.{}.attention.out_proj".format(i) for i in range(0, 12)])
+    op_names.extend(["hubert.encoder.layers.{}.feed_forward.intermediate_dense".format(i) for i in range(0, 12)])
+    op_names.extend(["hubert.encoder.layers.{}.feed_forward.output_dense".format(i) for i in range(0, 12)])
+
+    # config_list = [{'op_types': ['Linear'], 'op_names': op_names, 'sparsity': sparsity}]
+    config_list = [{'op_types': ['Linear'], 'sparsity': model_args.sparsity_ratio, 'op_names':op_names}, {'exclude':True, 'op_names':['classifier']}]
+    # config_list = [{'op_types': ['Linear'], 'sparsity': model_args.sparsity_ratio}, {'exclude':True, 'op_names':['classifier']}]
     pruner = BalancedPruner(model, config_list, align_n=[model_args.alignn, 1], balance_gran=[1, 32])
     model, masks = pruner.compress()
     data_dir = f"hubert_superb_{model_args.sparsity_ratio}_uniform_align_n_{model_args.alignn}"

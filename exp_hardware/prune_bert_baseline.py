@@ -21,7 +21,7 @@ from transformers import (
 
 from nni.algorithms.compression.pytorch.pruning import HardwareAwarePruner
 from nni.compression.pytorch.pruning import BalancedPruner
-from nni.compression.pytorch.pruning import LevelPruner
+from nni.compression.pytorch.pruning import LevelPruner, BlockPruner
 def setup_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
@@ -132,7 +132,10 @@ if __name__ == '__main__':
         data_dir = args.outdir
     os.makedirs(data_dir, exist_ok=True)
     torch.save(config_list, os.path.join(data_dir, 'config_list'))
-    pruner = LevelPruner(model, config_list)
+    if args.blockh == 1 and args.blockw == 1:
+        pruner = LevelPruner(model, config_list)
+    else:
+        pruner = BlockPruner(model, config_list, block_sparse_size=[args.blockh, args.blockw])
     model, masks = pruner.compress()
     import ipdb; ipdb.set_trace()
     # _, model, masks, _, _ = pruner.get_best_result()
