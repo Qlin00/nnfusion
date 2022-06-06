@@ -1,8 +1,9 @@
+echo sparsity $1 align $2
 python prune_hubert_uniform_balance.py \
         --model_name_or_path hubert_pretrained_ck \
         --dataset_name superb \
         --dataset_config_name ks \
-        --output_dir hubert_ks_finetune_finegrained \
+        --output_dir hubert_ks_finetune_${1}_align_${2} \
         --overwrite_output_dir \
         --remove_unused_columns False \
         --do_train --eval_split_name test --learning_rate 1e-3 \
@@ -21,5 +22,5 @@ python prune_hubert_uniform_balance.py \
         --save_total_limit 3 \
         --seed 0 \
         --lr_scheduler_type cosine \
-        --alignn 1 \
-        --sparsity_ratio 0.875
+        --alignn $2 \
+        --sparsity_ratio $1
