@@ -1,3 +1,0 @@
-Dot_11 8 1 ./mlp_block_sparse_data/1024_0.6/row.bin mlp_block_sparse_data/1024_0.6/col.bin mlp_block_sparse_data/1024_0.6/val.bin
-Dot_16 8 0 ./mlp_block_sparse_data/1024_0.6/row.bin mlp_block_sparse_data/1024_0.6/col.bin mlp_block_sparse_data/1024_0.6/val.bin
-Dot_21 8 0 ./mlp_block_sparse_data/512_0.6/row.bin mlp_block_sparse_data/512_0.6/col.bin mlp_block_sparse_data/512_0.6/val.bin

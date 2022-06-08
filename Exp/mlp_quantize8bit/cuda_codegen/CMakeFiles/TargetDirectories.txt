@@ -1,4 +1,0 @@
-/home/v-linbin/znx/nnfusion/tmp/nnfusion_rt/cuda_codegen/CMakeFiles/rebuild_cache.dir
-/home/v-linbin/znx/nnfusion/tmp/nnfusion_rt/cuda_codegen/CMakeFiles/edit_cache.dir
-/home/v-linbin/znx/nnfusion/tmp/nnfusion_rt/cuda_codegen/CMakeFiles/main_test.dir
-/home/v-linbin/znx/nnfusion/tmp/nnfusion_rt/cuda_codegen/CMakeFiles/nnfusion_naive_rt.dir
