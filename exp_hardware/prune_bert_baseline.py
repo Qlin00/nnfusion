@@ -79,7 +79,8 @@ if __name__ == '__main__':
     parser.add_argument('--cks', type=str, default=None)
     parser.add_argument('--outdir', type=str, default=None)
     args = parser.parse_args()
-
+    if 'AMLT_OUTPUT_DIR' in os.environ:
+        args.outdir = os.environ['AMLT_OUTPUT_DIR']
     task_name = args.task_name
     num_labels = 3 if task_name == 'mnli' else 2
     seed = args.seed
@@ -137,7 +138,7 @@ if __name__ == '__main__':
     else:
         pruner = BlockPruner(model, config_list, block_sparse_size=[args.blockh, args.blockw])
     model, masks = pruner.compress()
-    import ipdb; ipdb.set_trace()
+    # import ipdb; ipdb.set_trace()
     # _, model, masks, _, _ = pruner.get_best_result()
     for epoch in range(finetune_epoch[task_name]):
         trainer(model, optimizer, train_dataloader)

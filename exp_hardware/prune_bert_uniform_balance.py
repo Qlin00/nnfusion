@@ -77,6 +77,8 @@ if __name__ == '__main__':
     parser.add_argument('--cks', type=str, default=None)
     parser.add_argument('--outdir', type=str, default=None)
     args = parser.parse_args()
+    if 'AMLT_OUTPUT_DIR' in os.environ:
+        args.outdir = os.environ['AMLT_OUTPUT_DIR']
 
     task_name = args.task_name
     num_labels = 3 if task_name == 'mnli' else 2
@@ -132,7 +134,7 @@ if __name__ == '__main__':
     # pruner = HardwareAwarePruner(model, config_list, hardware_evaluator, align_n_set=[1,2,4,8,16,32], experiment_data_dir=data_dir, need_sort=False)
     pruner = BalancedPruner(model, config_list, align_n=[args.alignn, 1], balance_gran=[1, 32])
     model, masks = pruner.compress()
-    import ipdb; ipdb.set_trace()
+    # import ipdb; ipdb.set_trace()
     # _, model, masks, _, _ = pruner.get_best_result()
     for epoch in range(finetune_epoch[task_name]):
         trainer(model, optimizer, train_dataloader)
