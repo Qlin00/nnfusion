@@ -1,0 +1,1 @@
+azcopy copy "exp_hardware" "https://nennistorage.blob.core.windows.net/nni/nizhen/hardware_sparse/?sv=2020-08-04&ss=b&srt=sco&sp=rwdlacx&se=2022-07-01T14:41:00Z&st=2021-09-09T06:41:00Z&spr=https&sig=vVyyBj9q6RSjNODflKjUCwh3TW1%2B1N9W5sp%2BdcATVto%3D"  --recursive
