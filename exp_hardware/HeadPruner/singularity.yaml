@@ -1,0 +1,30 @@
+description: hjiang-Amulet-GLUE-nn_pruning
+
+target:
+  service: aisc
+
+environment:
+  image: amlt-sing/pytorch
+  setup:
+    - bash /blob/setup.sh
+    - pip install git+https://github.com/huggingface/nn_pruning.git
+    - cp -r /blob/Experiments/Pruning/nn_pruning/GLUE/mnli/bert-base-mnli/ /tmp/
+    - mkdir /tmp/code/results & mkdir /tmp/code/checkpoints
+
+code:
+  local_dir: $CONFIG_DIR/
+
+storage:
+  external:
+    storage_account_name: australiav100data
+    container_name: hjiang
+    mount_dir: /blob
+    is_output: True
+
+jobs:
+  - name: hjiang-mnli-nn_pruning
+    sku: NCv2:G4
+    command:
+      - bash scripts/glue_nn_pruning.sh
+      - bash scripts/glue_nn_pruning_filled.sh
+      - bash scripts/post_storage.sh
