@@ -1247,7 +1247,7 @@ cmake_minimum_required(VERSION 3.5)
 
 SET(SRC "nnfusion_rt.cu" CACHE STRING "codegen source file")
 SET(TARGET_NAME "nnfusion_naive_rt" CACHE STRING "codegen target name")
-SET(CUDA_ARCH "-gencode arch=compute_75,code=sm_75" CACHE STRING "target architecture")
+SET(CUDA_ARCH "-gencode arch=compute_75,code=sm_75 -gencode arch=compute_80,code=sm_80" CACHE STRING "target architecture")
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
