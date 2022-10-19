@@ -36,9 +36,9 @@ import torch
 import sys
 import os
 from nni.compression.pytorch.pruning import LevelPruner
-from sparta.common.utils import export_tesa, export_tesa_debug, generate_balance_cfg, generate_balance_pattern,generate_sputnik_sparse_cfg
+from sparta.common.utils import export_tesa, export_tesa_debug, generate_cusparse_sparse_cfg
 device = torch.device('cpu')
-remain_n = 4
+remain_n = 16
 total_m = 32
 align = 1
 sparsity_ratio = 1 - remain_n / total_m
@@ -52,7 +52,7 @@ tesa_path = os.path.join(in_dir, 'tesa')
 id_map_path = os.path.join(in_dir, 'tesaid_2_names')
 model_path = os.path.join(in_dir, 'model_tesa.onnx')
 
-generate_sputnik_sparse_cfg(tesa_path, state_path, id_map_path, out_dir)
+generate_cusparse_sparse_cfg(tesa_path, state_path, id_map_path, out_dir)
 os.system(f"cp {tesa_path} {out_dir}")
 os.system(f"cp {model_path} {out_dir}")
 os.system(f"cp {state_path} {out_dir}")
