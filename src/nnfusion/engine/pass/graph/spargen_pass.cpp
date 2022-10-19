@@ -104,7 +104,7 @@ public:
             else if (sparse_type == "HipSparse"){}
             else if (sparse_type == "MklSparse"){}
             else if (sparse_type == "ConvertDot"){}
-
+            else if (sparse_type == "CuSparse"){}
             else
             {
                 throw std::invalid_argument("Not supported Sparse Type");
