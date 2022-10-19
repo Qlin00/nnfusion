@@ -1,5 +1,5 @@
 rm -rf ~/.cache/nnfusion/kernel_cache.db
-prefix=sputnik_bert_large_n_16_m_32_align1
+prefix=sputnik_bert_large_n_8_m_32_align1
 out_dir=nnfusion_cfg_test
 mkdir $out_dir
 cp ${prefix}/* $out_dir
