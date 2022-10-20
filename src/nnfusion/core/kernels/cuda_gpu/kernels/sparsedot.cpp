@@ -37,64 +37,100 @@ LanguageUnit_p cuda::SparseDot::emit_function_body()
     LanguageUnit_p _lu(new LanguageUnit(get_function_name()));
     auto& lu = *_lu;
     std::map<bool, string> trans_string = {{true, "CUSPARSE_OPERATION_TRANSPOSE"}, {false, "CUSPARSE_OPERATION_NON_TRANSPOSE"}};
-    if(dtype == element::f32){
-        lu << "const float alpha = 1.0;\n const float beta = 0;\n";
+    if(dtype==element::f32 && sparse_idx==1){
+        int m, k, n;
+        std::cout<<"Dense Shape";
+        for (size_t i = 0; i < dense_shape.size(); i++)
+        {
+            /* code */
+            std::cout<< dense_shape[i]<<" ";
 
-        lu<< "//Create the sparse matrix description\n";
-        lu<< "cusparseMatDescr_t descrA = NULL;\n";
-        lu<< "CUSPARSE_SAFE_CALL(cusparseCreateMatDescr(&descrA));\n";
-        lu<< "cusparseSetMatIndexBase(descrA,CUSPARSE_INDEX_BASE_ZERO);\n";
-        lu<< "cusparseSetMatType(descrA, CUSPARSE_MATRIX_TYPE_GENERAL );\n";
-        if(sparse_idx == 0){
-            // calculate in row-major
-            lu<< "CUSPARSE_SAFE_CALL()";
-        }else if(sparse_idx == 1){
-            // calculate in col-major
-            int m, k, n;
-
-            std::cout<<"Dense Shape";
-            for (size_t i = 0; i < dense_shape.size(); i++)
-            {
-                /* code */
-                std::cout<< dense_shape[i]<<" ";
-
-            }
-            std::cout<<std::endl;
-            m = 1;
-            for(int i=0;i<dense_shape.size()-1;i++)
-                m = m* dense_shape[i];
-            // m = dense_shape[0];
-            k = dense_shape[dense_shape.size()-1];
-            n = trans_B? sparse_shape[0]: sparse_shape[1];
-            std::cout<< "Cusparse "<<" M:"<<m<<"  K:"<<k<< " N:"<<n<<std::endl;
-            std::cout<< "Trans_B: "<< trans_B<<std::endl;
-            if(trans_B){
-                std::cout<<k<<" "<<sparse_shape[0]<<" "<<sparse_shape[1]<<std::endl;
-                assert(k == sparse_shape[1]);
-            }else{
-                assert(k == sparse_shape[0]);
-            }
-            lu << "CUSPARSE_SAFE_CALL(cusparseScsrmm("
-               << "cusparse_handle"\
-               << ", "<<trans_string[!trans_B]\
-               << ", "<<n //M
-               << ", "<<m //N
-               << ", "<<k //K
-               << ", "<<sparse_nnz
-               << ", &alpha"
-               << ", descrA"
-               << ", input2"
-               << ", input0"
-               << ", input1"
-               << ", input3"
-               << ", "<<k  //LDB
-               << ",&beta"
-               << ",output0"
-               << ","<<n<<"));"; //LDC
-        }else{
-            throw "Invalid sparse index for the SparseDot operation!";
         }
+        std::cout<<std::endl;
+        m = 1;
+        for(int i=0;i<dense_shape.size()-1;i++)
+            m = m* dense_shape[i];
+        // m = dense_shape[0];
+        k = dense_shape[dense_shape.size()-1];
+        n = trans_B? sparse_shape[0]: sparse_shape[1];
+        // currently only support sparse index equals to 1
+        lu << "const float alpha = 1.0;\n const float beta = 0;\n";
+        lu << "static size_t bufferSize = 0;\n";
+        lu << "//cusparseHandle_t cusparse_handle;\n";
+        lu << "//CUSPARSE_SAFE_CALL(cusparseCreate(&cusparse_handle));";
+        lu << "static size_t bufferSize = 0;\n";
+        lu << "static float *dBuffer = NULL;\n";
+        lu << "cusparseSpMatDescr_t sp_weight;\n";
+        lu << "cusparseDnMatDescr_t in_activation, output_m;\n";
+        // input list of cusparse dot row, col, val
+        lu << "CUSPARSE_SAFE_CALL(cusparseCreateCsr(&sp_weight,"<<n<<","<<k<<","<<sparse_nnz<<", (void *)input0, (void *)input1, (void *)input2, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F));\n";
+        lu << "CUSPARSE_SAFE_CALL(cusparseCreateDnMat(&in_activation, "<<m<<", "<<k<<", "<<k<<", input3, CUDA_R_32F, CUSPARSE_ORDER_ROW));\n";
+        lu << "CUSPARSE_SAFE_CALL(cusparseCreateDnMat(&output_m, "<<n<<", "<<m<<", "<<m<<", output0, CUDA_R_32F, CUSPARSE_ORDER_ROW));\n";
+        lu << "if (dBuffer==NULL){\n";
+        lu << "\tCUSPARSE_SAFE_CALL(cusparseSpMM_bufferSize(cusparse_handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE, &alpha, sp_weight, in_activation, &beta, output_m, CUDA_R_32F, CUSPARSE_SPMM_CSR_ALG2, &bufferSize));\n";
+        lu << "\tCUDA_SAFE_CALL(cudaMalloc(&dBuffer, bufferSize));\n";
+        lu << "}\n";
+        lu << "CUSPARSE_SAFE_CALL(cusparseSpMM(cusparse_handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE, &alpha, sp_weight, in_activation, &beta, output_m, CUDA_R_32F, CUSPARSE_SPMM_CSR_ALG2, dBuffer));\n";
     }
+    
+    // if(dtype == element::f32){
+    //     lu << "const float alpha = 1.0;\n const float beta = 0;\n";
+
+    //     lu<< "//Create the sparse matrix description\n";
+    //     lu<< "cusparseMatDescr_t descrA = NULL;\n";
+    //     lu<< "CUSPARSE_SAFE_CALL(cusparseCreateMatDescr(&descrA));\n";
+    //     lu<< "cusparseSetMatIndexBase(descrA,CUSPARSE_INDEX_BASE_ZERO);\n";
+    //     lu<< "cusparseSetMatType(descrA, CUSPARSE_MATRIX_TYPE_GENERAL );\n";
+    //     if(sparse_idx == 0){
+    //         // calculate in row-major
+    //         lu<< "CUSPARSE_SAFE_CALL()";
+    //     }else if(sparse_idx == 1){
+    //         // calculate in col-major
+    //         int m, k, n;
+
+    //         std::cout<<"Dense Shape";
+    //         for (size_t i = 0; i < dense_shape.size(); i++)
+    //         {
+    //             /* code */
+    //             std::cout<< dense_shape[i]<<" ";
+
+    //         }
+    //         std::cout<<std::endl;
+    //         m = 1;
+    //         for(int i=0;i<dense_shape.size()-1;i++)
+    //             m = m* dense_shape[i];
+    //         // m = dense_shape[0];
+    //         k = dense_shape[dense_shape.size()-1];
+    //         n = trans_B? sparse_shape[0]: sparse_shape[1];
+    //         std::cout<< "Cusparse "<<" M:"<<m<<"  K:"<<k<< " N:"<<n<<std::endl;
+    //         std::cout<< "Trans_B: "<< trans_B<<std::endl;
+    //         if(trans_B){
+    //             std::cout<<k<<" "<<sparse_shape[0]<<" "<<sparse_shape[1]<<std::endl;
+    //             assert(k == sparse_shape[1]);
+    //         }else{
+    //             assert(k == sparse_shape[0]);
+    //         }
+    //         lu << "CUSPARSE_SAFE_CALL(cusparseScsrmm("
+    //            << "cusparse_handle"\
+    //            << ", "<<trans_string[!trans_B]\
+    //            << ", "<<n //M
+    //            << ", "<<m //N
+    //            << ", "<<k //K
+    //            << ", "<<sparse_nnz
+    //            << ", &alpha"
+    //            << ", descrA"
+    //            << ", input2"
+    //            << ", input0"
+    //            << ", input1"
+    //            << ", input3"
+    //            << ", "<<k  //LDB
+    //            << ",&beta"
+    //            << ",output0"
+    //            << ","<<n<<"));"; //LDC
+    //     }else{
+    //         throw "Invalid sparse index for the SparseDot operation!";
+    //     }
+    // }
     // cuda 11.1
     // if(dtype == element::f32){
     //     lu << "const float alpha = 1.0;\n const float beta = 0;\n";
