@@ -38,9 +38,9 @@ import os
 from nni.compression.pytorch.pruning import LevelPruner
 from sparta.common.utils import export_tesa, export_tesa_debug, generate_balance_cfg, generate_balance_pattern,generate_sputnik_sparse_cfg
 device = torch.device('cpu')
-remain_n = 8
+remain_n = 16
 total_m = 32
-align = 1
+align = 4
 sparsity_ratio = 1 - remain_n / total_m
 in_dir = f'balance_bert_large_n_{remain_n}_m_{total_m}_align{align}'
 out_dir = f'sputnik_bert_large_n_{remain_n}_m_{total_m}_align{align}'
