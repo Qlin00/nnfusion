@@ -200,7 +200,7 @@ namespace nnfusion
                 virtual bool require_cublas_handle() { return false; }
                 virtual bool require_cusparse_handle() { return false; }
                 virtual bool require_hipsparse_handle() { return false; }
-                
+                virtual bool require_cusparselt_handle() { return false; }
             };
 
             class AntaresCudaKernelEmitter : public BlockCudaEmitter

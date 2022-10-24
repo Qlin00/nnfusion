@@ -14,6 +14,7 @@ namespace nnfusion
             LU_DECLARE(cublas);
             LU_DECLARE(cudnn);
             LU_DECLARE(cusparse);
+            LU_DECLARE(cusparselt);
             LU_DECLARE(sputnik);
             LU_DECLARE(hipsparse);
             LU_DECLARE(superscaler);
@@ -35,6 +36,7 @@ namespace nnfusion
             LU_DECLARE(CUBLAS_SAFE_CALL);
             LU_DECLARE(CUSPARSE_SAFE_CALL_NO_THROW);
             LU_DECLARE(CUSPARSE_SAFE_CALL);
+            LU_DECLARE(CHECK_CUSPARSE); // for cusparseLt
             LU_DECLARE(CUDA_SAFE_LAUNCH);
             LU_DECLARE(CUPTI_CALL);
         } // namespace macro

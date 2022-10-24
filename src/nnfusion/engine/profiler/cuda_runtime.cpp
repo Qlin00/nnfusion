@@ -30,6 +30,7 @@ bool CudaDefaultRuntime::codegen(const ProfilingContext::Pointer& ke)
     bool require_cudnn_handle = false;
     bool require_cublas_handle = false;
     bool require_cusparse_handle = false;
+    bool require_cusparselt_handle = false;
     bool require_hipsparse_handle = false;
     if (auto kernel = std::dynamic_pointer_cast<CudaLibEmitter>(ke->kernel))
     {
@@ -45,8 +46,13 @@ bool CudaDefaultRuntime::codegen(const ProfilingContext::Pointer& ke)
         }
         if (kernel->require_cusparse_handle())
         {   
-            async_info.execution_stream->add_binding_symbol("cuspare_handle");
+            async_info.execution_stream->add_binding_symbol("cusparse_handle");
             require_cusparse_handle = true;
+        }
+        if (kernel->require_cusparselt_handle())
+        {   
+            async_info.execution_stream->add_binding_symbol("cusparselt_handle");
+            require_cusparselt_handle = true;
         }
         if (kernel->require_hipsparse_handle())
         {
@@ -103,6 +109,10 @@ bool CudaDefaultRuntime::codegen(const ProfilingContext::Pointer& ke)
         if (kernel->require_cusparse_handle())
         {
             writer << "cusparseHandle_t cusparse_handle_0;\n";
+        }
+        if (kernel->require_cusparselt_handle())
+        {
+            writer << "cusparseLtHandle_t cusparselt_handle_0;\n";
         }
         if (kernel->require_hipsparse_handle())
         {
@@ -245,6 +255,10 @@ bool CudaDefaultRuntime::codegen(const ProfilingContext::Pointer& ke)
         if (require_cusparse_handle)
         {
             writer << "CUSPARSE_SAFE_CALL(cusparseCreate(&cusparse_handle_0));\n";
+        }
+        if (require_cusparselt_handle)
+        {
+            writer << "CHECK_CUSPARSE( cusparseLtInit(&cusparselt_handle_0) );\n";
         }
         if (require_hipsparse_handle)
         {
@@ -455,6 +469,10 @@ bool CudaDefaultRuntime::codegen(const ProfilingContext::Pointer& ke)
         if (require_cusparse_handle)
         {
             writer << "CUSPARSE_SAFE_CALL(cusparseDestroy(cusparse_handle_0));\n";
+        }
+        if (require_cusparselt_handle)
+        {
+            writer << "CHECK_CUSPARSE( cusparseLtDestroy(&handle) )\n";
         }
         if (require_hipsparse_handle)
         {

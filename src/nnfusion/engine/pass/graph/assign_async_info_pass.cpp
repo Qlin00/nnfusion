@@ -401,6 +401,8 @@ void AssignAsyncInfoPass::naive_assign_stream_info(shared_ptr<Graph>& graph)
                 stream->add_binding_symbol("cublas_handle");
             if (kernel->require_cusparse_handle())
                 stream->add_binding_symbol("cusparse_handle");
+            if (kernel->require_cusparselt_handle())
+                stream->add_binding_symbol("cusparselt_handle");
             if (kernel->require_hipsparse_handle())
                 stream->add_binding_symbol("hipsparse_handle");
         }
@@ -734,6 +736,8 @@ void AssignAsyncInfoPass::kernel_prof_based_assign_stream_info(std::shared_ptr<G
                 stream->add_binding_symbol("cublas_handle");
             if (kernel->require_cusparse_handle())
                 stream->add_binding_symbol("cusparse_handle");
+            if (kernel->require_cusparselt_handle())
+                stream->add_binding_symbol("cusparselt_handle");
             if (kernel->require_hipsparse_handle())
                 stream->add_binding_symbol("hipsparse_handle");
         }

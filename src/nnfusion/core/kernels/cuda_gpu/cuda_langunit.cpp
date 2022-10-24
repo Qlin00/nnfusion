@@ -12,6 +12,7 @@ LU_DEFINE(header::cuda, "#include <cuda.h>\n#include <cuda_runtime.h>\n");
 LU_DEFINE(header::cublas, "#include <cublas_v2.h>\n");
 LU_DEFINE(header::cudnn, "#include <cudnn.h>\n");
 LU_DEFINE(header::cusparse, "#include <cusparse.h>\n");
+LU_DEFINE(header::cusparselt, "#include <cusparseLt.h>\n");
 LU_DEFINE(header::sputnik,
           "#include \"sputnik/cuda_utils.h\"\n#include \"sputnik/matrix_utils.h\"\n#include "
           "\"sputnik/spmm/cuda_spmm.h\"\n");
@@ -164,6 +165,21 @@ LU_DEFINE(
     } while (0)
    )");
 
+LU_DEFINE(
+    macro::CHECK_CUSPARSE,
+    R"(#define CHECK_CUSPARSE(func)                                             \
+    do                                                                          \
+    {                                                                           \
+     cusparseStatus_t status = (func);                                          \
+     if (status != CUSPARSE_STATUS_SUCCESS) {                                   \
+         printf("CUSPARSE API failed at line %d with error: %s (%d)\n",         \
+                __LINE__, cusparseGetErrorString(status), status);              \
+         throw std::runtime_error("");                                          \
+     }                                                                          \
+    }while(0)
+    )"
+
+);
 LU_DEFINE(
     macro::CUDA_SAFE_LAUNCH,
     R"(#define CUDA_SAFE_LAUNCH(x)                                                                       \

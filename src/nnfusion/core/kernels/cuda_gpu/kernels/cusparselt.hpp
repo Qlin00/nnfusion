@@ -17,12 +17,12 @@ namespace nnfusion
                 LanguageUnit_p emit_dependency() override;
                 LanguageUnit_p emit_function_signature() override;
                 // LanguageUnit_p emit_comments() override;
-                bool require_cusparse_handle() override { return true; }
+                bool require_cusparselt_handle() override { return true; }
             private:
                 shared_ptr<KernelContext> kernel_ctx;
                 size_t reduction_axes;
                 size_t sparse_nnz;
-                nnfusion::Shape dense_shape, sparse_shape;
+                nnfusion::Shape dense_shape, weight_shape;
                 nnfusion::Shape out_shape;
                 nnfusion::element::Type dtype;
                 
