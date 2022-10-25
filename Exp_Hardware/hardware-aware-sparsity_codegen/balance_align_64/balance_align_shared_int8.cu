@@ -787,17 +787,17 @@ int oneKernel_general(int w, const int h, const int vecNum, const int BLOCK_WIDT
 
 	cudaDeviceSynchronize();
 
-	for(int i = 0; i < ntimes; i +=1){
-		//compute_gemm_imma<<<block_num, THREADS_PER_BLOCK>>>(d_A, d_B, d_D, alpha, integer);
-		if(shared_size > 32768){
-			checkCudaErrors(cudaFuncSetAttribute(
-				compute_gemm_imma_large_share, cudaFuncAttributeMaxDynamicSharedMemorySize,
-				shared_size));
-			compute_gemm_imma_large_share<<<block_num, THREADS_PER_BLOCK, shared_size>>>(g_vec, g_mat_data, g_mat_index, g_result, alpha, integer);
-		}else{
-			compute_gemm_imma<<<block_num, THREADS_PER_BLOCK>>>(g_vec, g_mat_data, g_mat_index, g_result, alpha, integer);
-		}
-	}
+	// for(int i = 0; i < ntimes; i +=1){
+	// 	//compute_gemm_imma<<<block_num, THREADS_PER_BLOCK>>>(d_A, d_B, d_D, alpha, integer);
+	// 	if(shared_size > 32768){
+	// 		checkCudaErrors(cudaFuncSetAttribute(
+	// 			compute_gemm_imma_large_share, cudaFuncAttributeMaxDynamicSharedMemorySize,
+	// 			shared_size));
+	// 		compute_gemm_imma_large_share<<<block_num, THREADS_PER_BLOCK, shared_size>>>(g_vec, g_mat_data, g_mat_index, g_result, alpha, integer);
+	// 	}else{
+	// 		compute_gemm_imma<<<block_num, THREADS_PER_BLOCK>>>(g_vec, g_mat_data, g_mat_index, g_result, alpha, integer);
+	// 	}
+	// }
 
 	cudaEventRecord(start);
 	//cudaEventSynchronize(start);
