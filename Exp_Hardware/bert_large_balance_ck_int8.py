@@ -36,7 +36,7 @@ import torch
 import sys
 import os
 from nni.compression.pytorch.pruning import LevelPruner
-from sparta.common.utils import export_tesa, export_tesa_debug, generate_balance_cfg, generate_balance_pattern
+from sparta.common.utils import export_tesa, export_tesa_debug, generate_balance_cfg_int8, generate_balance_pattern
 device = torch.device('cpu')
 remain_n = 8
 total_m = 32
@@ -69,4 +69,4 @@ for name, module in norm_model.named_modules():
         module.weight.data[:] = 1
 export_tesa(norm_model.cpu(), data, outdir, mask)
 
-generate_balance_cfg(outdir, align, total_m, sparsity_ratio)
+generate_balance_cfg_int8(outdir, align, total_m, sparsity_ratio)
