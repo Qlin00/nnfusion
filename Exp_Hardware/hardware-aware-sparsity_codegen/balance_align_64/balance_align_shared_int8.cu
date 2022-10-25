@@ -778,7 +778,7 @@ int oneKernel_general(int w, const int h, const int vecNum, const int BLOCK_WIDT
 	const int shared_size = MAX(sizeof(uint8_t) * (BLOCK_SIZE_K_SPARSE * (BLOCK_COL_TILES * M + SKEW_UINT8) + BLOCK_SIZE_K_SPARSE * (BLOCK_ROW_TILES * N + SKEW_UINT8)),
 			M * BLOCK_ROW_TILES * N * BLOCK_COL_TILES * sizeof(int));
 
-	printf("shared_size is %d\n", shared_size);
+	printf("shared_size is %d, larger than 32768: %d\n", shared_size, shared_size > 32768);
 	if(shared_size > 32768){
 		checkCudaErrors(cudaFuncSetAttribute(
 			compute_gemm_imma_large_share, cudaFuncAttributeMaxDynamicSharedMemorySize,
