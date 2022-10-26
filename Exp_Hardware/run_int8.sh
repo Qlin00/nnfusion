@@ -9,4 +9,4 @@ python prepare_cfg_int8.py --in_dir $prefix  --out_dir $out_dir
 pushd $out_dir
 nnfusion model_tesa.onnx -f onnx -flayernorm_fusion=1 -fgelu_fusion=1 -fspargen_cfg config
 popd
-
+python post_process_int8.py --file ${out_dir}/nnfusion_rt/cuda_codegen/nnfusion_rt.cu
