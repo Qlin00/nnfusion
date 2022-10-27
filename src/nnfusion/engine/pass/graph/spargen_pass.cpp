@@ -12,6 +12,7 @@
 #include "nnfusion/core/graph/graph.hpp"
 #include "nnfusion/core/kernels/cuda_gpu/cuda_emitter.hpp"
 #include "nnfusion/core/kernels/cuda_gpu/kernels/cusparselt.hpp"
+#include "nnfusion/core/kernels/cuda_gpu/kernels/cusparselt_int8.hpp"
 #include "nnfusion/core/kernels/cpu/cpu_kernel_emitter.hpp"
 #include "nnfusion/core/kernels/kernel_registration.hpp"
 #include "nnfusion/core/operators/op_define/broadcast.hpp"
@@ -107,6 +108,7 @@ public:
             else if (sparse_type == "ConvertDot"){}
             else if (sparse_type == "CuSparse"){}
             else if (sparse_type == "CuSparseLt"){}
+            else if (sparse_type == "CuSparseLtInt8") {}
             else
             {
                 throw std::invalid_argument("Not supported Sparse Type");
@@ -269,6 +271,10 @@ public:
         else if(sparse_type == "CuSparseLt")
         {
             CusparseLtDotOptimize(dot_node, n_device_type);
+        }
+        else if(sparse_type == "CusparseLtInt8")
+        {
+            CusparseLtInt8DotOptimize(dot_node, n_device_type);
         }
         else if(sparse_type == "Sputnik"){
             // SputnikDotOptimize(dot_node, fusible_nodes, n_device_type);
@@ -1156,7 +1162,16 @@ private:
         kernel->get_or_emit_source();
         (*cur_node)["Kernel_Selection_Result"] = std::make_pair(n_device_type, pkernel);
     }
-
+    void CusparseLtInt8DotOptimize(std::shared_ptr<GNode> cur_node, NNFusion_DeviceType n_device_type)
+    {
+        std::shared_ptr<KernelContext> ctx(new KernelContext(cur_node));
+        // auto kernel = std::make_shared<kernels::cuda::CacheCudaEmitter>(ctx, convert_kernel);
+        auto kernel = std::make_shared<kernels::cuda::CusparseLTInt8>(ctx);
+        KernelEmitter::Pointer pkernel = kernel;
+        // need to emit the source before bind the kernel
+        kernel->get_or_emit_source();
+        (*cur_node)["Kernel_Selection_Result"] = std::make_pair(n_device_type, pkernel);
+    }
     void insert_converter(std::shared_ptr<GNode> node, int in_bit, int out_bit)
     {
         // TODO complete this function
