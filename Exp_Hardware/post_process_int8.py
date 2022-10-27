@@ -19,6 +19,6 @@ func_calls = re.findall(pattern, code)
 for f in func_calls:
     # 65536 
     _tmp = 'cudaFuncSetAttribute({}, cudaFuncAttributeMaxDynamicSharedMemorySize,73728);\n{}'.format(f[:-21], f[:-3])
-    code = code.replace(f, _tmp+'73728')
+    code = code.replace(f, _tmp+'73768')
 with open(code_path, 'w') as f:
     f.write(code)
