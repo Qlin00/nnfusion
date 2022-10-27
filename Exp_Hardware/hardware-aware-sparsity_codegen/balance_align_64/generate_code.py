@@ -48,8 +48,8 @@ for name, kernel_content in algorithm_kernel_interface.items():
     threads_per_block = 32 * warps_per_block
 
     launch_config = {}
-    launch_config['dimBlock'] = [block_num, 1]
-    launch_config['dimGrid'] = [threads_per_block, 1]
+    launch_config['dimGrid'] = [block_num, 1]
+    launch_config['dimBlock'] = [threads_per_block, 1]
 
     kernel_dict[name] = {'code': template_tmp, 'launch_config': launch_config}
 
