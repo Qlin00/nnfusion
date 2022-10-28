@@ -272,7 +272,7 @@ public:
         {
             CusparseLtDotOptimize(dot_node, n_device_type);
         }
-        else if(sparse_type == "CusparseLtInt8")
+        else if(sparse_type == "CuSparseLtInt8")
         {
             CusparseLtInt8DotOptimize(dot_node, n_device_type);
         }

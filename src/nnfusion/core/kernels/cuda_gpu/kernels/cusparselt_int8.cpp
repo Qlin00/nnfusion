@@ -101,8 +101,7 @@ auto B_size = B_height * ldb * sizeof(float);
 auto C_size = C_height * ldc * sizeof(float);
 // static float *dA, *dB, *dC, *dD, *dA_compressed;
 static int8_t * dA, *dB, * dC, *d_compressed;
-dA = (int8_t*) input0;
-dB = (int8_t*) input1;
+
 // static float* d_compressed;
 static int *d_valid;
 static int is_valid;
@@ -116,6 +115,9 @@ static int alg_id;
         lu << "if(__init==0){\n";
         lu << "\t __init=1;\n";
         lu << R"(
+        dA = (int8_t*) input0;
+        dB = (int8_t*) input1;
+        dC = (int8_t*) output0;
         // CUDA_SAFE_CALL( cudaMalloc((void**) &dA, A_size) );
         // CUDA_SAFE_CALL( cudaMalloc((void**) &dB, B_size) );
         // CUDA_SAFE_CALL( cudaMalloc((void**) &dC, C_size) );
@@ -135,14 +137,14 @@ static int alg_id;
         lu << "\t CHECK_CUSPARSE( cusparseLtSpMMAPruneCheck(&cusparselt_handle, &matmul, dB, d_valid, stream) );\n";
         lu << "\t CUDA_SAFE_CALL( cudaMemcpy(&is_valid, d_valid, sizeof(d_valid), cudaMemcpyDeviceToHost) );\n";
         lu << "\t CUDA_SAFE_CALL( cudaStreamSynchronize(stream) );\n";
-        lu << "\t assert(is_valid == 0);\n";
+        // lu << "\t assert(is_valid == 0);\n";
         lu << "\t CHECK_CUSPARSE( cusparseLtSpMMACompressedSize(&cusparselt_handle, &plan, &compressed_size) );\n";
         lu << "\t CUDA_SAFE_CALL( cudaMalloc((void**) &d_compressed, compressed_size) );\n";
         lu << "\t CHECK_CUSPARSE( cusparseLtSpMMACompress(&cusparselt_handle, &plan, dB, d_compressed, stream) );\n";
-        lu << "\t CHECK_CUSPARSE( cusparseLtMatmulSearch(&cusparselt_handle, &plan, &alpha, dA, d_compressed, &beta, output0, output0, d_workspace, streams, num_streams) );\n";
+        lu << "\t CHECK_CUSPARSE( cusparseLtMatmulSearch(&cusparselt_handle, &plan, &alpha, dA, d_compressed, &beta, dC, dC, d_workspace, streams, num_streams) );\n";
         lu << "\t CHECK_CUSPARSE( cusparseLtMatmulAlgGetAttribute(&cusparselt_handle, &alg_sel, CUSPARSELT_MATMUL_ALG_CONFIG_ID, &alg_id, sizeof(alg_id)) );\n"; 
         lu << "}\n";
-        lu << "CHECK_CUSPARSE( cusparseLtMatmul(&cusparselt_handle, &plan, &alpha, dA, d_compressed, &beta, output0, output0, d_workspace, streams, num_streams) );\n";
+        lu << "CHECK_CUSPARSE( cusparseLtMatmul(&cusparselt_handle, &plan, &alpha, dA, d_compressed, &beta, dC, dC, d_workspace, streams, num_streams) );\n";
     }
 
     return _lu;

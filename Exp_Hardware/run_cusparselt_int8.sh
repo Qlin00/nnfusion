@@ -1,6 +1,6 @@
 rm -rf ~/.cache/nnfusion/kernel_cache.db
 prefix=cusparselt_int8_bert_large_n_16_m_32_align1
-out_dir=nnfusion_cfg_test
+out_dir=nnfusion_cfg_n_16_m_32_align1_cusparselt_int8
 mkdir $out_dir
 cp ${prefix}/* $out_dir
 pushd $out_dir
