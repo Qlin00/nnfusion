@@ -1,9 +1,14 @@
-__global__ void MatMul_TILE_BLOCK_GENERAL(float *g_vec, float *g_mat_data, int *g_mat_index, float *g_data, float *bias){
-    const int SPARSITY = SPARSITY_VALUE;
+__global__ void MatMul_TILE_BLOCK_GENERAL(float *input0, float *input1, float *input2, float *input3, float *output0){
+	float *g_vec = input0;
+	float *g_mat_data = input1;
+	int *g_mat_index = (int*)input2;
+	float *bias = input3;
+	float *g_data = output0;
+	const float SPARSITY = SPARSITY_VALUE;
     const int M = M_GLOBAL_VALUE;
     const int K = K_GLOBAL_VALUE;
     const int N = N_GLOBAL_VALUE;
-    const int K_sparse = int(K * SPARSITY);
+    const int K_sparse = int(K * (1-SPARSITY));
 
     const int BLOCK_SIZE_M = BLOCK_SIZE_M_VALUE;
     const int BLOCK_SIZE_N = BLOCK_SIZE_N_VALUE;
@@ -15,7 +20,7 @@ __global__ void MatMul_TILE_BLOCK_GENERAL(float *g_vec, float *g_mat_data, int *
     const int ALIGN_N = BLOCK_SIZE_N;
 
     const int BANK_VAL = BANK_VAL_VALUE;
-    const int NUM_BANK = K_GLOBAL / BANK_VAL;
+    const int NUM_BANK = K / BANK_VAL;
 
     const int BANK_NUM_PER_BLOCK = BLOCK_SIZE_K / BANK_VAL;
     const int BLOCK_SIZE_K_SPARSE = int(BLOCK_SIZE_K * (1-SPARSITY));
@@ -24,7 +29,7 @@ __global__ void MatMul_TILE_BLOCK_GENERAL(float *g_vec, float *g_mat_data, int *
 	int M_BLOCK_START = blockIdx.x * BLOCK_SIZE_M;
 	int N_BLOCK_START = blockIdx.y * BLOCK_SIZE_N;
 
-	const int BANK_VAL = K / NUM_BANK;
+	
 
 	const int A_THREADS_PER_ROW = BLOCK_SIZE_M / 4;
 	const int B_THREADS_PER_ROW = BLOCK_SIZE_N / 4;

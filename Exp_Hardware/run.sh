@@ -1,5 +1,5 @@
 rm -rf ~/.cache/nnfusion/kernel_cache.db
-prefix=balance_bert_large_n_4_m_32_align4
+prefix=balance_bert_large_n_3_m_32_align32
 out_dir=nnfusion_cfg_test
 python prepare_cfg.py --in_dir $prefix  --out_dir $out_dir
 cp ${prefix}/config $out_dir

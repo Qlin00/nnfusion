@@ -38,9 +38,12 @@ import os
 from nni.compression.pytorch.pruning import LevelPruner
 from sparta.common.utils import export_tesa, export_tesa_debug, generate_balance_cfg, generate_balance_pattern
 device = torch.device('cpu')
-remain_n = 4
+parser = argparse.ArgumentParser()
+parser.add_argument('--align', required=True)
+args = parser.parse_args()
+remain_n = 3
 total_m = 32
-align = 32
+align = int(args.align)
 sparsity_ratio = 1 - remain_n / total_m
 outdir = f'balance_bert_large_n_{remain_n}_m_{total_m}_align{align}'
 dummy_input = torch.load('dummy_input.pth', map_location=device)
@@ -56,10 +59,10 @@ for name, module in norm_model.named_modules():
 pruner = LevelPruner(norm_model, cfg_list)
 # get the propagated mask
 pruner.compress()
-pruner.export_model('./weight.pth', './mask.pth')
+pruner.export_model(f'./weight_{align}.pth', f'./mask_{align}.pth')
 # generate random mask
 pruner._unwrap_model()
-mask =  torch.load('./mask.pth')
+mask =  torch.load(f'./mask_{align}.pth')
 
 for name in mask:
     n, k = mask[name]['weight'].size()

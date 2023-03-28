@@ -9,7 +9,7 @@ args = parser.parse_args()
 
 filename = args.file
 algorithm_kernel_interface = torch.load(filename)
-template = "balance_align_reg.cu"
+template = "balance_align_shared_32.cu"
 f = open(template)
 template_content = f.read()
 kernel_dict = {}

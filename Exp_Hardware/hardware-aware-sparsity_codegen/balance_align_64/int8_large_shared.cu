@@ -42,7 +42,7 @@ __global__ void compute_gemm_imma(float *input0, float *input1, float *input2, f
     auto C_LAYOUT = wmma::mem_col_major;
     const int CHUNK_K = CHUNK_K_VALUE;
     const int CHUNK_K_SPARSE = (int(CHUNK_K * (1-SPARSITY)));
-    const int BLOCK_SIZE_K = (int(CHUNK_K * (1-SPARSITY)));
+    const int BLOCK_SIZE_K = (int(CHUNK_K * K));
     const int BLOCK_SIZE_K_SPARSE = (int((CHUNK_K * K) * (1 - SPARSITY)));
     const int WARP_COPY_BYTES = (WARP_SIZE * sizeof(int4));
     const int CHUNK_LINE_BYTES_A (BLOCK_COL_TILES * M * sizeof(uint8_t));
