@@ -68,7 +68,15 @@ namespace nnfusion
                         result = m_graph->add_node_and_edge(std::make_shared<op::Multiply>(),
                                                             {result, alpha});
                     }
-
+                    if (beta_value == 1)
+                    {
+                        auto C = input_indexes[2];
+                        auto temp_result = GNodeIndex{result, 0};
+                        std::tie(temp_result, C) =
+                            numpy_broadcast(std::make_pair(temp_result, C), m_graph);
+                        result = m_graph->add_node_and_edge(std::make_shared<op::Add>(), {C, GNodeIndex{result, 0}});
+                    }
+                    
                     if (std::fabs(beta_value) > 0)
                     {
                         auto C = input_indexes[2];
