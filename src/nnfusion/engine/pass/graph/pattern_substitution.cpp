@@ -104,7 +104,7 @@ public:
             {
                 auto dst = m_nodes[edge->get_dst()->get_id()];
                 // node that will not be computed
-                if (!dst)
+                if (!dst || dst->visited)
                     continue;
                 dst->ready_inputs++;
                 NNFUSION_CHECK(!(dst->visited));
